@@ -2,14 +2,14 @@
 
 This flat helper keeps the public release's existing hsle.benchmark and
 hsle.prompts modules unshadowed. It contains only the prompt construction,
-adaptive-attempt, source-loading, and validation primitives used by
+single-dispatch request, source-loading, and validation primitives used by
 hsle.public_openrouter_resume.
 """
 
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from dataclasses import asdict, dataclass, replace
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import StrEnum
 import hashlib
@@ -22,22 +22,14 @@ from typing import Any, Literal
 import pandas as pd
 
 
-ADAPTIVE_RECOVERY_PROTOCOL_VERSION = "hsle-tmlr-v1-initial-plus-five-retries-adaptive-last-two"
-ATTEMPT_WAL_SCHEMA_VERSION = 1
-MAX_RETRIES = 5
-MAX_TOTAL_ATTEMPTS = 1 + MAX_RETRIES
+ADAPTIVE_RECOVERY_PROTOCOL_VERSION = "hsle-openrouter-single-dispatch-v1"
+MAX_RETRIES = 0
+MAX_TOTAL_ATTEMPTS = 1
 FULL_INPUT_PROFILE = "full"
-SMART_TRUNCATE_V1 = "smart_truncate_v1"
-SMART_TRUNCATE_V2 = "smart_truncate_v2"
 TERMINAL_FAILURE_STATUS = "nonresponsive"
 TERMINAL_HLE_CORRECTNESS = "incorrect"
 TERMINAL_CLOSENESS_SCORE = 0
 
-INPUT_PROFILES: tuple[str, ...] = (
-    FULL_INPUT_PROFILE,
-    SMART_TRUNCATE_V1,
-    SMART_TRUNCATE_V2,
-)
 VALID_SETTINGS = frozenset(
     {
         "zero_shot",
@@ -143,36 +135,20 @@ def _atomic_write_json(path: Path, payload: Mapping[str, Any]) -> None:
 
 @dataclass(frozen=True, slots=True)
 class AdaptiveRecoveryPolicy:
-    """Immutable recovery controls.
-
-    ``max_retries`` is intentionally named and validated independently from
-    ``max_total_attempts``.  It means retries *after* the initial dispatch,
-    avoiding the legacy runner's ambiguous hidden ``+1`` convention.
-    """
+    """Immutable one-dispatch policy for every benchmark turn."""
 
     max_retries: int = MAX_RETRIES
     max_total_attempts: int = MAX_TOTAL_ATTEMPTS
-    attempts_1_to_4_input_profile: str = FULL_INPUT_PROFILE
-    attempt_5_input_profile: str = SMART_TRUNCATE_V1
-    attempt_6_input_profile: str = SMART_TRUNCATE_V2
+    input_profile_name: str = FULL_INPUT_PROFILE
     terminal_failure_status: str = TERMINAL_FAILURE_STATUS
     terminal_hle_correctness: str = TERMINAL_HLE_CORRECTNESS
     terminal_closeness_score: int = TERMINAL_CLOSENESS_SCORE
-    example_question_v1_chars: int = 6_000
-    example_question_v2_chars: int = 3_000
-    prior_response_v1_chars: int = 4_000
-    prior_response_v2_chars: int = 1_500
-    prior_reasoning_v1_chars: int = 3_000
-    prior_reasoning_v2_chars: int = 900
-    prior_question_v2_chars: int = 3_000
 
     def __post_init__(self) -> None:
         expected = {
             "max_retries": MAX_RETRIES,
             "max_total_attempts": MAX_TOTAL_ATTEMPTS,
-            "attempts_1_to_4_input_profile": FULL_INPUT_PROFILE,
-            "attempt_5_input_profile": SMART_TRUNCATE_V1,
-            "attempt_6_input_profile": SMART_TRUNCATE_V2,
+            "input_profile_name": FULL_INPUT_PROFILE,
             "terminal_failure_status": TERMINAL_FAILURE_STATUS,
             "terminal_hle_correctness": TERMINAL_HLE_CORRECTNESS,
             "terminal_closeness_score": TERMINAL_CLOSENESS_SCORE,
@@ -182,38 +158,13 @@ class AdaptiveRecoveryPolicy:
                 raise ValueError(f"The versioned recovery protocol requires {name}={value!r}")
         if self.max_total_attempts != 1 + self.max_retries:
             raise ValueError("max_total_attempts must equal one initial attempt plus max_retries")
-        for name in (
-            "example_question_v1_chars",
-            "example_question_v2_chars",
-            "prior_response_v1_chars",
-            "prior_response_v2_chars",
-            "prior_reasoning_v1_chars",
-            "prior_reasoning_v2_chars",
-            "prior_question_v2_chars",
-        ):
-            if (
-                isinstance(getattr(self, name), bool)
-                or not isinstance(getattr(self, name), int)
-                or getattr(self, name) < 256
-            ):
-                raise ValueError(f"{name} must be an integer of at least 256")
-        if self.example_question_v2_chars > self.example_question_v1_chars:
-            raise ValueError("v2 example budget must not exceed v1")
-        if self.prior_response_v2_chars > self.prior_response_v1_chars:
-            raise ValueError("v2 response budget must not exceed v1")
-        if self.prior_reasoning_v2_chars > self.prior_reasoning_v1_chars:
-            raise ValueError("v2 reasoning budget must not exceed v1")
 
     def input_profile(self, attempt_number: int) -> str:
         if isinstance(attempt_number, bool) or not isinstance(attempt_number, int):
             raise TypeError("attempt_number must be an integer")
         if not 1 <= attempt_number <= self.max_total_attempts:
             raise ValueError(f"attempt_number must be in [1, {self.max_total_attempts}]")
-        if attempt_number <= 4:
-            return self.attempts_1_to_4_input_profile
-        if attempt_number == 5:
-            return self.attempt_5_input_profile
-        return self.attempt_6_input_profile
+        return self.input_profile_name
 
     @property
     def sha256(self) -> str:
@@ -343,18 +294,6 @@ class ImageEvidence:
 
 
 @dataclass(frozen=True, slots=True)
-class TruncationEvent:
-    message_index: int
-    field: Literal["content", "reasoning_content"]
-    semantic_kind: str
-    original_chars: int
-    retained_chars: int
-    omitted_chars: int
-    original_sha256: str
-    retained_sha256: str
-
-
-@dataclass(frozen=True, slots=True)
 class AttemptRequest:
     protocol_version: str
     policy_sha256: str
@@ -369,11 +308,6 @@ class AttemptRequest:
     canonical_request_sha256: str
     request_sha256: str
     prompt_sha256: str
-    truncation_events: tuple[TruncationEvent, ...]
-
-    @property
-    def truncation_applied(self) -> bool:
-        return bool(self.truncation_events)
 
     def manifest(self, *, include_paths: bool = True) -> dict[str, Any]:
         messages = [
@@ -409,8 +343,8 @@ class AttemptRequest:
             "canonical_request_sha256": self.canonical_request_sha256,
             "request_sha256": self.request_sha256,
             "prompt_sha256": self.prompt_sha256,
-            "truncation_applied": self.truncation_applied,
-            "truncation_events": [asdict(event) for event in self.truncation_events],
+            "truncation_applied": False,
+            "truncation_events": [],
         }
 
 
@@ -432,55 +366,6 @@ def attachment_legend(examples: Sequence[ContextExample], target_paths: Sequence
     if not labels:
         return ""
     return "\n\nATTACHED IMAGE ORDER:\n" + "\n".join(labels)
-
-
-def _middle_compact(value: str, budget: int) -> tuple[str, int]:
-    """Deterministically retain the informative head and answer-heavy tail."""
-
-    if len(value) <= budget:
-        return value, 0
-    marker_budget = 128
-    if budget <= marker_budget:
-        raise ValueError("Compaction budget is too small for an auditable marker")
-    # Resolve the marker's own digit length to a fixed point so the recorded
-    # omitted count is exact rather than an approximation.
-    omitted = len(value) - (budget - marker_budget)
-    while True:
-        marker = f"\n\n[... omitted {omitted} chars; source_sha256={text_sha256(value)} ...]\n\n"
-        remaining = budget - len(marker)
-        updated = len(value) - remaining
-        if updated == omitted:
-            break
-        omitted = updated
-    # The tail receives slightly more room because answer choices and final
-    # answers normally appear there.
-    head_chars = remaining * 2 // 5
-    tail_chars = remaining - head_chars
-    compacted = value[:head_chars] + marker + value[-tail_chars:]
-    return compacted, len(value) - len(compacted)
-
-
-def _compact_field(
-    value: str,
-    budget: int,
-    *,
-    message_index: int,
-    field_name: Literal["content", "reasoning_content"],
-    semantic_kind: str,
-) -> tuple[str, TruncationEvent | None]:
-    retained, omitted = _middle_compact(value, budget)
-    if omitted == 0:
-        return value, None
-    return retained, TruncationEvent(
-        message_index=message_index,
-        field=field_name,
-        semantic_kind=semantic_kind,
-        original_chars=len(value),
-        retained_chars=len(retained),
-        omitted_chars=omitted,
-        original_sha256=text_sha256(value),
-        retained_sha256=text_sha256(retained),
-    )
 
 
 def _static_prompt(
@@ -596,101 +481,6 @@ def _prompt_transcript(messages: Sequence[AdaptiveMessage], images: Sequence[Ima
     return "\n\n".join(parts)
 
 
-def _compact_static_envelope(
-    envelope: PromptEnvelope,
-    profile: str,
-    policy: AdaptiveRecoveryPolicy,
-) -> tuple[tuple[AdaptiveMessage, ...], tuple[TruncationEvent, ...]]:
-    if profile == FULL_INPUT_PROFILE:
-        return envelope.messages, ()
-    budget = (
-        policy.example_question_v1_chars
-        if profile == SMART_TRUNCATE_V1
-        else policy.example_question_v2_chars
-    )
-    compact_examples: list[ContextExample] = []
-    events: list[TruncationEvent] = []
-    for index, example in enumerate(envelope.static_examples):
-        retained, event = _compact_field(
-            example.question,
-            budget,
-            message_index=0,
-            field_name="content",
-            semantic_kind=f"static_example_{index + 1}_question",
-        )
-        compact_examples.append(replace(example, question=retained))
-        if event is not None:
-            events.append(event)
-    prompt, images = _static_prompt(
-        envelope.coordinate,
-        compact_examples,
-        envelope.target_question,
-        envelope.target_image_paths,
-    )
-    messages = (
-        AdaptiveMessage(
-            role="user",
-            content=prompt,
-            image_paths=images,
-            semantic_kind="target_with_static_examples",
-        ),
-    )
-    return messages, tuple(events)
-
-
-def _compact_chat_envelope(
-    envelope: PromptEnvelope,
-    profile: str,
-    policy: AdaptiveRecoveryPolicy,
-) -> tuple[tuple[AdaptiveMessage, ...], tuple[TruncationEvent, ...]]:
-    if profile == FULL_INPUT_PROFILE:
-        return envelope.messages, ()
-    result: list[AdaptiveMessage] = []
-    events: list[TruncationEvent] = []
-    final_index = len(envelope.messages) - 1
-    for index, message in enumerate(envelope.messages):
-        # The current question, its answer choices, and its images are immutable.
-        if index == final_index:
-            result.append(message)
-            continue
-        content = message.content
-        reasoning = message.reasoning_content
-        if message.role == "assistant":
-            content_budget = (
-                policy.prior_response_v1_chars
-                if profile == SMART_TRUNCATE_V1
-                else policy.prior_response_v2_chars
-            )
-            reasoning_budget = (
-                policy.prior_reasoning_v1_chars
-                if profile == SMART_TRUNCATE_V1
-                else policy.prior_reasoning_v2_chars
-            )
-            content, event = _compact_field(
-                content,
-                content_budget,
-                message_index=index,
-                field_name="content",
-                semantic_kind=message.semantic_kind or "prior_assistant_response",
-            )
-            if event is not None:
-                events.append(event)
-            reasoning, event = _compact_field(
-                reasoning,
-                reasoning_budget,
-                message_index=index,
-                field_name="reasoning_content",
-                semantic_kind=message.semantic_kind or "prior_assistant_response",
-            )
-            if event is not None:
-                events.append(event)
-        # Every user turn (questions, answer choices, and feedback) is
-        # intentionally left byte-exact.  LFE compaction removes only earlier
-        # model verbosity/reasoning, which is the safe low-value material.
-        result.append(replace(message, content=content, reasoning_content=reasoning))
-    return tuple(result), tuple(events)
-
-
 def build_attempt_request(
     envelope: PromptEnvelope,
     attempt_number: int,
@@ -699,21 +489,18 @@ def build_attempt_request(
 ) -> AttemptRequest:
     active_policy = policy or AdaptiveRecoveryPolicy()
     profile = active_policy.input_profile(attempt_number)
-    if envelope.coordinate.evaluation_setting == "learning_from_experience":
-        messages, truncation_events = _compact_chat_envelope(envelope, profile, active_policy)
-    else:
-        messages, truncation_events = _compact_static_envelope(envelope, profile, active_policy)
+    messages = envelope.messages
     if envelope.target_question not in messages[-1].content:
-        raise ValueError("Adaptive compaction changed or removed the target question")
+        raise ValueError("Single-dispatch request changed or removed the target question")
     if messages[-1].image_paths != envelope.messages[-1].image_paths:
-        raise ValueError("Adaptive compaction changed target image bindings")
+        raise ValueError("Single-dispatch request changed target image bindings")
 
     canonical_images = _image_evidence(envelope.messages)
     attempt_images = _image_evidence(messages)
     if [item.hash_payload() for item in canonical_images] != [
         item.hash_payload() for item in attempt_images
     ]:
-        raise ValueError("Adaptive compaction changed ordered image identities")
+        raise ValueError("Single-dispatch request changed ordered image identities")
     canonical_payload = _request_hash_payload(envelope.messages, canonical_images)
     request_payload = _request_hash_payload(messages, attempt_images)
     target_image_count = len(envelope.target_image_paths)
@@ -736,7 +523,6 @@ def build_attempt_request(
         canonical_request_sha256=canonical_json_sha256(canonical_payload),
         request_sha256=canonical_json_sha256(request_payload),
         prompt_sha256=text_sha256(_prompt_transcript(messages, attempt_images)),
-        truncation_events=truncation_events,
     )
 
 

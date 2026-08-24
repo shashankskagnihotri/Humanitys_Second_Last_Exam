@@ -21,7 +21,7 @@ hsle-download-data
 ```
 
 The default is `shashankskagnihotri/humanitys-second-last-exam` at revision
-`6861ef237eb9501b8fda3d4fe61788154e143c22`. `HSLE_DATASET_REPO` and
+`aeda08b2536a19e698d027fd4f701eea78c9171d`. `HSLE_DATASET_REPO` and
 `HSLE_DATASET_REVISION` can select another explicit snapshot. The command
 materializes the snapshot beneath the Git-ignored `data/` directory by
 default. A private or gated alternative also requires `HF_TOKEN`; see

@@ -7,9 +7,9 @@ MODE=${1:-}
 PROJECT_ROOT=${HSLE_PUBLIC_PROJECT_ROOT:?HSLE_PUBLIC_PROJECT_ROOT is required}
 OUTPUT_ROOT=${HSLE_PUBLIC_OUTPUT_ROOT:?HSLE_PUBLIC_OUTPUT_ROOT is required}
 INPUT_ROOT=${HSLE_INPUT_ROOT:?HSLE_INPUT_ROOT is required}
-PYTHON=${PROJECT_ROOT}/.venv-public-openrouter-resume/bin/python
+PYTHON=${PROJECT_ROOT}/.venv-openrouter-benchmark/bin/python
 if [[ ! -x ${PYTHON} ]]; then
-  echo "The public-resume virtual environment is absent." >&2
+  echo "The OpenRouter benchmark virtual environment is absent." >&2
   exit 2
 fi
 if [[ ${MODE} == worker ]]; then

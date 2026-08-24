@@ -1,39 +1,39 @@
 # Audited generation snapshot and authoritative publication order.
 audited_generation_snapshot:
   date: 2026-08-24
-  expected_coordinates: 77315
+  expected_coordinates: 75230
   real_nonblank_responses: 63769
-  terminal_policy_settlements: 325
-  scientifically_settled_coordinates: 64094
-  callable_coordinates: 13148
+  terminal_policy_settlements: 344
+  scientifically_settled_coordinates: 64113
+  callable_coordinates: 11044
   paid_no_replay_coordinates: 73
-  unresolved_coordinates: 13221
+  unresolved_coordinates: 11117
 
 concrete_variant_census:
   zero_shot:
     complete_models: 26
-    settled: 12998
-    callable: 2450
+    settled: 13006
+    callable: 2025
     paid_no_replay: 15
   one_shot_a:
     complete_models: 26
-    settled: 13017
-    callable: 2430
+    settled: 13019
+    callable: 2011
     paid_no_replay: 16
   one_shot_b:
     complete_models: 26
-    settled: 12999
-    callable: 2444
+    settled: 13005
+    callable: 2021
     paid_no_replay: 20
   two_shot:
     complete_models: 26
-    settled: 13002
-    callable: 2445
+    settled: 13004
+    callable: 2026
     paid_no_replay: 16
   learning_from_experience:
     complete_models: 24
-    settled: 12078
-    callable: 3379
+    settled: 12079
+    callable: 2961
     paid_no_replay: 6
 
 remaining_work_routing:
@@ -43,9 +43,6 @@ remaining_work_routing:
     - moonshotai/Kimi-K2.6
     - moonshotai/Kimi-K3
     - qwen/qwen3.8-max
-  outside_public_runner:
-    - moonshotai/Kimi-K2-Instruct
-  cap_held_requires_credit_or_new_authority:
     - MiniMaxAI/MiniMax-M2.5
   local_cluster_routes:
     - nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
@@ -192,23 +189,14 @@ models:
     terminal_settlements: 0
     callable_coordinates: 0
     paid_no_replay_coordinates: 0
-  - model_id: moonshotai/Kimi-K2-Instruct
-    display_name: Kimi-K2-Instruct
-    family: kimi
-    modality: text_only
-    generation_status: incomplete
-    real_responses: 0
-    terminal_settlements: 0
-    callable_coordinates: 2085
-    paid_no_replay_coordinates: 0
   - model_id: moonshotai/Kimi-K2-Thinking
     display_name: Kimi-K2-Thinking
     family: kimi
     modality: text_only
     generation_status: incomplete
     real_responses: 640
-    terminal_settlements: 0
-    callable_coordinates: 1438
+    terminal_settlements: 1
+    callable_coordinates: 1437
     paid_no_replay_coordinates: 7
   - model_id: moonshotai/Kimi-K2.5
     display_name: Kimi-K2.5
@@ -216,8 +204,8 @@ models:
     modality: multimodal
     generation_status: incomplete
     real_responses: 169
-    terminal_settlements: 34
-    callable_coordinates: 2246
+    terminal_settlements: 35
+    callable_coordinates: 2245
     paid_no_replay_coordinates: 6
   - model_id: moonshotai/Kimi-K2.6
     display_name: Kimi-K2.6
@@ -234,8 +222,8 @@ models:
     modality: multimodal
     generation_status: incomplete
     real_responses: 401
-    terminal_settlements: 41
-    callable_coordinates: 1975
+    terminal_settlements: 53
+    callable_coordinates: 1963
     paid_no_replay_coordinates: 38
   - model_id: moonshotai/Kimi-VL-A3B-Thinking
     display_name: Kimi-VL-A3B-Thinking
@@ -288,8 +276,8 @@ models:
     modality: text_only
     generation_status: incomplete
     real_responses: 1727
-    terminal_settlements: 158
-    callable_coordinates: 187
+    terminal_settlements: 161
+    callable_coordinates: 184
     paid_no_replay_coordinates: 13
   - model_id: mistralai/Mistral-7B-Instruct-v0.3
     display_name: Mistral-7B-Instruct-v0.3
@@ -351,6 +339,6 @@ models:
     modality: multimodal
     generation_status: incomplete
     real_responses: 321
-    terminal_settlements: 82
-    callable_coordinates: 2047
+    terminal_settlements: 84
+    callable_coordinates: 2045
     paid_no_replay_coordinates: 5

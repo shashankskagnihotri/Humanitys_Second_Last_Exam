@@ -13,9 +13,12 @@ import pandas as pd
 from hsle.config import load_environment, resolve_path
 
 
-DATA_PATTERNS = ("processed/**", "corrections/**", "images/**")
+DATA_PATTERNS = ("data/**", "processed/**", "corrections/**", "images/**")
 PUBLIC_DATASET_REPO_ID = "shashankskagnihotri/humanitys-second-last-exam"
-PUBLIC_DATASET_REVISION = "6861ef237eb9501b8fda3d4fe61788154e143c22"
+PUBLIC_DATASET_REVISION = "aeda08b2536a19e698d027fd4f701eea78c9171d"
+CONSOLIDATED_DATASET_SHA256 = (
+    "8a0568576ed1788e21899171c4e5a379b814ac09d912a26e3ad8a835a0337b04"
+)
 REQUIRED_PROCESSED_FILES = (
     "hsle_all_rows.csv",
     "hsle_context_examples.csv",
@@ -63,6 +66,18 @@ def _image_references(frame: pd.DataFrame, column: str) -> set[str]:
 
 def validate_dataset(data_dir: Path) -> None:
     """Validate file hashes, row counts, and the complete image-reference set."""
+
+    consolidated_path = data_dir / "data" / "hsle_consolidated.csv"
+    if not consolidated_path.is_file():
+        raise FileNotFoundError(f"Missing consolidated dataset: {consolidated_path}")
+    if _sha256(consolidated_path) != CONSOLIDATED_DATASET_SHA256:
+        raise ValueError("Consolidated 491-row dataset SHA-256 mismatch")
+    consolidated = pd.read_csv(consolidated_path, dtype=str, keep_default_na=False)
+    if consolidated.shape != (491, 174):
+        raise ValueError(
+            "Unexpected consolidated dataset shape: "
+            f"rows={len(consolidated)}, columns={len(consolidated.columns)}"
+        )
 
     metadata_path = data_dir / "processed" / "dataset_metadata.json"
     if not metadata_path.is_file():

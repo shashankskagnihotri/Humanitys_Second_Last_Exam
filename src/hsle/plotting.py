@@ -171,8 +171,8 @@ def _load_plot_contract() -> PlotContract:
 
 def _load_model_registry(contract: PlotContract) -> ModelRegistry:
     rows = load_yaml("configs/models.yaml").get("models")
-    if not isinstance(rows, list) or len(rows) != 33:
-        raise ValueError("configs/models.yaml must contain exactly 33 model rows")
+    if not isinstance(rows, list) or len(rows) != 32:
+        raise ValueError("configs/models.yaml must contain exactly 32 model rows")
     order: dict[str, int] = {}
     display_names: dict[str, str] = {}
     families: dict[str, str] = {}
