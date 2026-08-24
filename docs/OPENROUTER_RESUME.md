@@ -106,6 +106,14 @@ canonical response-schema SHA-256
 Both hashes are enforced and recorded in requests, decisions, prepare evidence,
 and the final manifest.
 
+The OpenRouter `google-ai-studio/flex` contract preserves that prompt and
+schema plus low reasoning, the 8,192-token limit, seed 0, and the exact
+provider. It does not advertise a supported safety-settings parameter, so the
+five direct-Forest `BLOCK_NONE` settings cannot be frozen through this route.
+An endpoint safety block therefore becomes a single-dispatch
+`feedback_failed`: incomplete and unjudged, with no retry and no incorrect
+score assigned to the evaluated model.
+
 The v3 workload contains 10,295 callable coordinates, 14,719 benchmark
 generation turns, and 4,424 LFE feedback calls. The 73 prior paid/no-replay
 coordinates are authenticated but excluded from submission.
