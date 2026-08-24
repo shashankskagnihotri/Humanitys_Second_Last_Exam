@@ -16,7 +16,7 @@ The scientific inputs are deliberately not duplicated in this Git repository.
 On the first run, the controller downloads without authentication
 `openrouter/hsle_public_openrouter_resume_v2.tar.gz` from the public Hugging
 Face dataset `shashankskagnihotri/humanitys-second-last-exam` at immutable
-revision `582207e5bd95b4f4e2948887c2d613398e98a17e`. No Hugging Face token is
+revision `6861ef237eb9501b8fda3d4fe61788154e143c22`. No Hugging Face token is
 needed. The archive must also have SHA-256
 `226ba161608182f37ee4310bd8d3cb32457604603f272ad3a88ee5d0666ecd23`;
 unsafe archive entries or any mismatch fail closed. Extraction is atomic into:

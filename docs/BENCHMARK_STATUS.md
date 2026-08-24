@@ -111,7 +111,7 @@ closeness judging.
 
 The authenticated input archive is published in the public Hugging Face
 dataset at immutable revision
-`582207e5bd95b4f4e2948887c2d613398e98a17e`. The archive SHA-256 is
+`6861ef237eb9501b8fda3d4fe61788154e143c22`. The archive SHA-256 is
 `226ba161608182f37ee4310bd8d3cb32457604603f272ad3a88ee5d0666ecd23`.
 
 ## What is not complete

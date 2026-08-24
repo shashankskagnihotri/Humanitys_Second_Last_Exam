@@ -15,7 +15,7 @@ from hsle.config import load_environment, resolve_path
 
 DATA_PATTERNS = ("processed/**", "corrections/**", "images/**")
 PUBLIC_DATASET_REPO_ID = "shashankskagnihotri/humanitys-second-last-exam"
-PUBLIC_DATASET_REVISION = "582207e5bd95b4f4e2948887c2d613398e98a17e"
+PUBLIC_DATASET_REVISION = "6861ef237eb9501b8fda3d4fe61788154e143c22"
 REQUIRED_PROCESSED_FILES = (
     "hsle_all_rows.csv",
     "hsle_context_examples.csv",

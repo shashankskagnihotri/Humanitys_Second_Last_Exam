@@ -60,7 +60,7 @@ the four equally weighted named settings.
 The public data release is
 [`shashankskagnihotri/humanitys-second-last-exam`](https://huggingface.co/datasets/shashankskagnihotri/humanitys-second-last-exam),
 pinned by default at immutable revision
-`582207e5bd95b4f4e2948887c2d613398e98a17e`.
+`6861ef237eb9501b8fda3d4fe61788154e143c22`.
 
 It contains:
 
@@ -85,7 +85,7 @@ Or select an explicit public revision:
 ```bash
 hsle-download-data \
   --repo-id shashankskagnihotri/humanitys-second-last-exam \
-  --revision 582207e5bd95b4f4e2948887c2d613398e98a17e
+  --revision 6861ef237eb9501b8fda3d4fe61788154e143c22
 ```
 
 The downloader writes only to the Git-ignored `data/` directory and validates
