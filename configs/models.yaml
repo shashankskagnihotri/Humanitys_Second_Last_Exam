@@ -1,0 +1,356 @@
+# Audited generation snapshot and authoritative publication order.
+audited_generation_snapshot:
+  date: 2026-08-24
+  expected_coordinates: 77315
+  real_nonblank_responses: 63769
+  terminal_policy_settlements: 325
+  scientifically_settled_coordinates: 64094
+  callable_coordinates: 13148
+  paid_no_replay_coordinates: 73
+  unresolved_coordinates: 13221
+
+concrete_variant_census:
+  zero_shot:
+    complete_models: 26
+    settled: 12998
+    callable: 2450
+    paid_no_replay: 15
+  one_shot_a:
+    complete_models: 26
+    settled: 13017
+    callable: 2430
+    paid_no_replay: 16
+  one_shot_b:
+    complete_models: 26
+    settled: 12999
+    callable: 2444
+    paid_no_replay: 20
+  two_shot:
+    complete_models: 26
+    settled: 13002
+    callable: 2445
+    paid_no_replay: 16
+  learning_from_experience:
+    complete_models: 24
+    settled: 12078
+    callable: 3379
+    paid_no_replay: 6
+
+remaining_work_routing:
+  public_openrouter_runner:
+    - moonshotai/Kimi-K2-Thinking
+    - moonshotai/Kimi-K2.5
+    - moonshotai/Kimi-K2.6
+    - moonshotai/Kimi-K3
+    - qwen/qwen3.8-max
+  outside_public_runner:
+    - moonshotai/Kimi-K2-Instruct
+  cap_held_requires_credit_or_new_authority:
+    - MiniMaxAI/MiniMax-M2.5
+  local_cluster_routes:
+    - nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
+    - nvidia/Llama-3_3-Nemotron-Super-49B-v1_5
+
+# Multimodal models require 2,455 coordinates; text-only models require 2,085.
+# strict_complete means every coordinate has a real nonblank response.
+# terminal_complete means the model is scientifically complete but has at
+# least one authenticated terminal-WRONG coordinate. Incomplete rows retain an
+# exact four-way real/terminal/callable/paid-no-replay partition.
+models:
+  - model_id: claude-haiku-4-5-20251001
+    display_name: Claude Haiku 4.5
+    family: claude
+    modality: multimodal
+    generation_status: strict_complete
+    real_responses: 2455
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: claude-sonnet-4-6
+    display_name: Claude Sonnet 4.6
+    family: claude
+    modality: multimodal
+    generation_status: strict_complete
+    real_responses: 2455
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: claude-opus-4-7
+    display_name: Claude Opus 4.7
+    family: claude
+    modality: multimodal
+    generation_status: strict_complete
+    real_responses: 2455
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: gemini-2.5-flash
+    display_name: Gemini 2.5 Flash
+    family: gemini
+    modality: multimodal
+    generation_status: strict_complete
+    real_responses: 2455
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: gemini-2.5-flash-lite
+    display_name: Gemini 2.5 Flash Lite
+    family: gemini
+    modality: multimodal
+    generation_status: strict_complete
+    real_responses: 2455
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: gemini-2.5-pro
+    display_name: Gemini 2.5 Pro
+    family: gemini
+    modality: multimodal
+    generation_status: terminal_complete
+    real_responses: 2454
+    terminal_settlements: 1
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: gpt-5.1
+    display_name: ChatGPT-5.1
+    family: gpt
+    modality: multimodal
+    generation_status: strict_complete
+    real_responses: 2455
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: gpt-5.2
+    display_name: ChatGPT-5.2
+    family: gpt
+    modality: multimodal
+    generation_status: strict_complete
+    real_responses: 2455
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: gpt-5.4
+    display_name: ChatGPT-5.4
+    family: gpt
+    modality: multimodal
+    generation_status: strict_complete
+    real_responses: 2455
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: gpt-5.5
+    display_name: ChatGPT-5.5
+    family: gpt
+    modality: multimodal
+    generation_status: strict_complete
+    real_responses: 2455
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: deepseek-ai/deepseek-vl2
+    display_name: DeepSeek-VL2
+    family: deepseek
+    modality: multimodal
+    generation_status: strict_complete
+    real_responses: 2455
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: google/gemma-2-9b-it
+    display_name: Gemma-2-9B-IT
+    family: gemma
+    modality: text_only
+    generation_status: strict_complete
+    real_responses: 2085
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: google/gemma-3-27b-it
+    display_name: Gemma-3-27B-IT
+    family: gemma
+    modality: multimodal
+    generation_status: strict_complete
+    real_responses: 2455
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: google/gemma-4-31B-it
+    display_name: Gemma-4-31B-IT
+    family: gemma
+    modality: multimodal
+    generation_status: strict_complete
+    real_responses: 2455
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: internlm/Intern-S1-mini
+    display_name: InternLM Intern-S1-Mini
+    family: internlm
+    modality: multimodal
+    generation_status: strict_complete
+    real_responses: 2455
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: moonshotai/Kimi-K2-Instruct
+    display_name: Kimi-K2-Instruct
+    family: kimi
+    modality: text_only
+    generation_status: incomplete
+    real_responses: 0
+    terminal_settlements: 0
+    callable_coordinates: 2085
+    paid_no_replay_coordinates: 0
+  - model_id: moonshotai/Kimi-K2-Thinking
+    display_name: Kimi-K2-Thinking
+    family: kimi
+    modality: text_only
+    generation_status: incomplete
+    real_responses: 640
+    terminal_settlements: 0
+    callable_coordinates: 1438
+    paid_no_replay_coordinates: 7
+  - model_id: moonshotai/Kimi-K2.5
+    display_name: Kimi-K2.5
+    family: kimi
+    modality: multimodal
+    generation_status: incomplete
+    real_responses: 169
+    terminal_settlements: 34
+    callable_coordinates: 2246
+    paid_no_replay_coordinates: 6
+  - model_id: moonshotai/Kimi-K2.6
+    display_name: Kimi-K2.6
+    family: kimi
+    modality: multimodal
+    generation_status: incomplete
+    real_responses: 23
+    terminal_settlements: 7
+    callable_coordinates: 2421
+    paid_no_replay_coordinates: 4
+  - model_id: moonshotai/Kimi-K3
+    display_name: Kimi-K3
+    family: kimi
+    modality: multimodal
+    generation_status: incomplete
+    real_responses: 401
+    terminal_settlements: 41
+    callable_coordinates: 1975
+    paid_no_replay_coordinates: 38
+  - model_id: moonshotai/Kimi-VL-A3B-Thinking
+    display_name: Kimi-VL-A3B-Thinking
+    family: kimi
+    modality: multimodal
+    generation_status: strict_complete
+    real_responses: 2455
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: meta-llama/Meta-Llama-3-70B-Instruct
+    display_name: Llama-3-70B-Instruct
+    family: llama
+    modality: text_only
+    generation_status: strict_complete
+    real_responses: 2085
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: meta-llama/Llama-3.1-70B-Instruct
+    display_name: Llama-3.1-70B-Instruct
+    family: llama
+    modality: text_only
+    generation_status: strict_complete
+    real_responses: 2085
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: meta-llama/Llama-3.3-70B-Instruct
+    display_name: Llama-3.3-70B-Instruct
+    family: llama
+    modality: text_only
+    generation_status: strict_complete
+    real_responses: 2085
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: llava-hf/llava-onevision-qwen2-7b-ov-hf
+    display_name: LLaVA-OneVision-Qwen2-7B-OV
+    family: llava
+    modality: multimodal
+    generation_status: strict_complete
+    real_responses: 2455
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: MiniMaxAI/MiniMax-M2.5
+    display_name: MiniMax-M2.5
+    family: minimax
+    modality: text_only
+    generation_status: incomplete
+    real_responses: 1727
+    terminal_settlements: 158
+    callable_coordinates: 187
+    paid_no_replay_coordinates: 13
+  - model_id: mistralai/Mistral-7B-Instruct-v0.3
+    display_name: Mistral-7B-Instruct-v0.3
+    family: mistral
+    modality: text_only
+    generation_status: strict_complete
+    real_responses: 2085
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
+    display_name: Nemotron-3-Nano-30B-A3B
+    family: nemotron
+    modality: text_only
+    generation_status: incomplete
+    real_responses: 1666
+    terminal_settlements: 2
+    callable_coordinates: 417
+    paid_no_replay_coordinates: 0
+  - model_id: nvidia/Llama-3_3-Nemotron-Super-49B-v1_5
+    display_name: Nemotron-Super-49B-v1.5
+    family: nemotron
+    modality: text_only
+    generation_status: incomplete
+    real_responses: 1753
+    terminal_settlements: 0
+    callable_coordinates: 332
+    paid_no_replay_coordinates: 0
+  - model_id: Qwen2-VL-2B-Instruct
+    display_name: Qwen2-VL-2B-Instruct
+    family: qwen
+    modality: multimodal
+    generation_status: strict_complete
+    real_responses: 2455
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: Qwen2.5-VL-32B-Instruct
+    display_name: Qwen2.5-VL-32B-Instruct
+    family: qwen
+    modality: multimodal
+    generation_status: strict_complete
+    real_responses: 2455
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: Qwen3-VL-30B-A3B-Instruct
+    display_name: Qwen3-VL-30B-A3B-Instruct
+    family: qwen
+    modality: multimodal
+    generation_status: strict_complete
+    real_responses: 2455
+    terminal_settlements: 0
+    callable_coordinates: 0
+    paid_no_replay_coordinates: 0
+  - model_id: qwen/qwen3.8-max
+    display_name: Qwen3.8 Max
+    family: qwen
+    modality: multimodal
+    generation_status: incomplete
+    real_responses: 321
+    terminal_settlements: 82
+    callable_coordinates: 2047
+    paid_no_replay_coordinates: 5

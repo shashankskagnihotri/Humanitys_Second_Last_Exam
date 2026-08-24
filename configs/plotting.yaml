@@ -1,0 +1,52 @@
+settings:
+  order:
+    - zero_shot
+    - one_shot
+    - two_shot
+    - learning_from_experience
+  labels:
+    zero_shot: Zero-shot
+    one_shot: One-shot
+    two_shot: Two-shot
+    learning_from_experience: Learning from Experience
+  hatches:
+    zero_shot: ""
+    one_shot: "///"
+    two_shot: "xx"
+    learning_from_experience: "oo"
+
+family_order:
+  - claude
+  - gemini
+  - gpt
+  - deepseek
+  - gemma
+  - internlm
+  - kimi
+  - llama
+  - llava
+  - minimax
+  - mistral
+  - nemotron
+  - qwen
+
+family_colors:
+  claude: "#7A4D2A"
+  gemini: "#167C80"
+  gpt: "#2F6FED"
+  deepseek: "#55A868"
+  gemma: "#C44E52"
+  internlm: "#8172B3"
+  kimi: "#D17C2F"
+  llama: "#6B8E23"
+  llava: "#B59A35"
+  minimax: "#E17C9B"
+  mistral: "#4C72B0"
+  nemotron: "#4E9B98"
+  qwen: "#8F4C99"
+
+output:
+  directory: outputs/figures
+  format: pdf
+  dpi: 300
+  titles: false

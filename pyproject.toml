@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "humanitys-second-last-exam"
+version = "1.1.0"
+description = "Reproducible evaluation code for Humanity's Second Last Exam."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Shashank Agnihotri", email = "shashanksagnihotri@gmail.com" }]
+requires-python = ">=3.11"
+classifiers = [
+  "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+]
+dependencies = [
+  "anthropic>=0.30",
+  "google-genai==2.6.0",
+  "huggingface-hub==1.4.1",
+  "matplotlib>=3.8",
+  "numpy==2.0.1",
+  "openai>=1.0",
+  "pandas==2.2.3",
+  "pydantic==2.10.3",
+  "PyYAML>=6.0",
+  "seaborn>=0.13",
+]
+
+[project.scripts]
+hsle-benchmark = "hsle.benchmark:main"
+hsle-download-data = "hsle.download_data:main"
+hsle-judge = "hsle.judge:main"
+hsle-metrics = "hsle.metrics:main"
+hsle-plots = "hsle.plotting:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

@@ -1,0 +1,58 @@
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+secrets/
+keys/
+
+# Dataset snapshots are distributed separately through Hugging Face.
+data/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+.venv-public-openrouter-resume/
+venv/
+env/
+envs/
+.conda/
+build/
+dist/
+
+# Generated runs, results, and caches
+# All model responses, judge responses, metrics, and plots are local-only.
+outputs/
+results/
+plots*/
+model_responses/
+judge_responses/
+needs_to_be_judged/
+.hsle_public_resume_inputs_v1/
+.hsle_public_resume_inputs_v2/
+benchmark_inputs/
+debugging/
+reports/
+tests_tmlr/
+release_tests/
+.v*/
+*.pdf
+logs/
+tmp/
+*.log
+*.out
+*.err
+*.pid
+.cache/
+hf_cache/
+huggingface_cache/
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

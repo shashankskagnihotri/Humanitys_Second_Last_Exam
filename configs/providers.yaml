@@ -1,0 +1,21 @@
+# Environment-variable names are configuration, never credential values.
+providers:
+  gemini:
+    api_key_env: GEMINI_API_KEY
+  openai:
+    api_key_env: OPENAI_API_KEY
+  anthropic:
+    api_key_env: ANTHROPIC_API_KEY
+  huggingface:
+    api_key_env: HF_TOKEN
+  openrouter:
+    api_key_env: OPENROUTER_API_KEY
+    base_url: https://openrouter.ai/api/v1
+    optional_site_url_env: OPENROUTER_SITE_URL
+    optional_app_name_env: OPENROUTER_APP_NAME
+
+dataset:
+  repo_id_env: HSLE_DATASET_REPO
+  revision_env: HSLE_DATASET_REVISION
+  token_env: HF_TOKEN
+  local_directory: data
