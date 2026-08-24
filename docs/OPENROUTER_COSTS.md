@@ -67,7 +67,7 @@ sufficient automatic funding before launch.
 OpenRouter separately charges a 5.5% credit-purchase fee, subject to its
 minimum. That fee is not inference. Funding the historical estimate entirely
 with newly purchased credits would add about **$54.76**, for roughly
-**$1,050.46 cash**. Funding the $1,501.71 planning scenario would add about
+**$1,050.46 cash**. Funding the $1,501.72 preflight reserve would add about
 **$82.59**, for roughly **$1,584.31 cash**.
 
 ## Why prior OpenAI and Claude runs cost much less
