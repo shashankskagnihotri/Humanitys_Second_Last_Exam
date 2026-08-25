@@ -11,11 +11,11 @@ judging, aggregation, plotting, and portable OpenRouter completion code. It
 does not contain API credentials, model responses, judge responses, metrics,
 plots, logs, cluster reports, or debugging artifacts.
 
-The reconciled 24 August 2026 generation scope contains **32 models**, **4
+The reconciled 25 August 2026 generation scope contains **32 models**, **4
 named settings**, and **75,230 concrete prompt coordinates**. Twenty-four
 models are complete across zero-shot, one-shot A, one-shot B, two-shot, and
-learning from experience. There are 63,769 real answers, 344 terminal
-incorrect settlements, 11,044 callable coordinates, and 73 paid/no-replay
+learning from experience. There are 63,764 real answers, 533 terminal
+incorrect settlements, 10,860 callable coordinates, and 73 paid/no-replay
 coordinates. See [the complete model-by-setting census](docs/BENCHMARK_STATUS.md).
 
 ## Evaluation design
@@ -70,7 +70,7 @@ release also contains:
 - target-to-instance linkages and full provenance columns;
 - 258 referenced image files;
 - target and context correction manifests; and
-- the authenticated six-route OpenRouter single-dispatch input bundle.
+- the authenticated historical six-route OpenRouter single-dispatch input bundle.
 
 Download and validate the complete default snapshot:
 
@@ -117,12 +117,14 @@ Python 3.11 or newer is required. Credentials belong only in the process
 environment or an untracked `.env`; see
 [credential configuration](docs/CREDENTIALS.md).
 
-## Finish the six OpenRouter models on a third cluster
+## Finish the five remaining OpenRouter models on a third cluster
 
 The portable workflow covers exactly Kimi K2 Thinking, Kimi 2.5, Kimi 2.6,
-Kimi K3, Qwen 3.8 Max, and MiniMax M2.5. From a clean clone, the third user
-sets a Slurm partition, stores their OpenRouter credential in a non-reserved
-environment variable, and identifies that variable by name:
+Kimi K3, and Qwen 3.8 Max. MiniMax M2.5's safely callable remainder completed
+on 25 August 2026 and is deliberately excluded, so a fresh clone cannot
+duplicate it. The third user sets a Slurm partition, stores their OpenRouter
+credential in a non-reserved environment variable, and identifies that
+variable by name:
 
 ```bash
 export MY_OPENROUTER_KEY='...'
@@ -133,7 +135,7 @@ bash script/run_remaining_openrouter_benchmarks.sh
 
 The script creates and installs its own virtual environment, downloads the
 complete pinned Hugging Face dataset, authenticates the v3 task bundle and
-every live exact provider route, then submits all six Slurm arrays plus a
+every live exact provider route, then submits all five Slurm arrays plus a
 strict completion finalizer.
 
 Every benchmark-model turn is dispatched **exactly once**. There are zero
@@ -146,20 +148,19 @@ strict finalizer fail; it is never retried or charged against the evaluated
 model. The default structured result directory is the Git-ignored
 `need_to_be_judged/` tree.
 
-The frozen workload contains 10,295 callable coordinates, 14,719 benchmark
-generation turns, 4,424 LFE feedback calls, and 73 authenticated prior
+The remaining workload contains 10,111 callable coordinates, 14,535 benchmark
+generation turns, 4,424 LFE feedback calls, and 60 authenticated prior
 paid/no-replay exclusions. Final HLE and closeness judging is not charged to
 the third user's OpenRouter account.
 
 See [the complete one-command contract](docs/OPENROUTER_RESUME.md) and
 [the corrected cost audit](docs/OPENROUTER_COSTS.md). The historical-output
-projection is about **$1,037.02 inference**; the main cost driver is native
+projection is about **$1,035.22 inference**; the main cost driver is native
 reasoning-token volume, especially Kimi K3, not a general OpenRouter markup.
 The immutable v3 input archive remains unchanged; the live runner explicitly
-binds K3's vanished Sail endpoint to DeepInfra BF16. An opt-in
-`HSLE_OPENROUTER_ROUTE_SELECTION=minimax_m25` mode runs only MiniMax's 184
-remaining coordinates with a $3.66 allowance gate and the same zero-retry
-contract.
+binds K3's vanished Sail endpoint to DeepInfra BF16. The completed MiniMax
+route remains in the immutable archive only as authenticated historical input;
+neither the launcher nor the worker CLI accepts it as pending work.
 
 ## General reproduction pipeline
 

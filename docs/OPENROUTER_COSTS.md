@@ -1,10 +1,10 @@
 # OpenRouter cost audit — 25 August 2026
 
-The current zero-retry planning estimate for the six-model remainder is
-**about $1,037.02 of inference**. The full-output planning reserve is
-**$1,562.77**, and the controller requires a one-cent-buffered **$1,562.78**
-remaining key allowance for the default six-route launch. The authorized
-MiniMax-only launch has its own **$3.66** allowance gate.
+The current zero-retry planning estimate for the five-model remainder is
+**about $1,035.22 of inference**. The full-output planning reserve is
+**$1,559.12**, and the controller requires a one-cent-buffered **$1,559.13**
+remaining key allowance. MiniMax M2.5 is complete and is not part of this
+pending workload.
 
 Prices, route health, quantization, context, output limits, and supported
 parameters were read from OpenRouter's official endpoint catalog at 12:19 UTC
@@ -13,14 +13,14 @@ submission and fails closed on drift.
 
 ## Exact remaining calls
 
-The v3 workload has 10,295 callable coordinates. A static coordinate makes one
+The remaining workload has 10,111 callable coordinates. A static coordinate makes one
 benchmark-generation call. Each LFE coordinate makes three generation calls
 and two Gemini feedback calls.
 
 ```text
 generation turns = coordinates + 2 × LFE coordinates
-                 = 10,295 + 2 × 2,212
-                 = 14,719
+                 = 10,111 + 2 × 2,212
+                 = 14,535
 
 Gemini feedback calls = 2 × 2,212 = 4,424
 ```
@@ -29,13 +29,12 @@ The requested order and exact call counts are:
 
 | Order | Model | Callable coordinates | Generation turns | LFE feedback calls |
 |---:|---|---:|---:|---:|
-| 1 | MiniMax M2.5 | 184 | 184 | 0 |
-| 2 | Qwen 3.8 Max | 2,045 | 3,027 | 982 |
-| 3 | Kimi K3 | 1,963 | 2,943 | 980 |
-| 4 | Kimi K2 Thinking | 1,437 | 1,939 | 502 |
-| 5 | Kimi K2.6 | 2,421 | 3,401 | 980 |
-| 6 | Kimi K2.5 | 2,245 | 3,225 | 980 |
-| **Total** |  | **10,295** | **14,719** | **4,424** |
+| 1 | Qwen 3.8 Max | 2,045 | 3,027 | 982 |
+| 2 | Kimi K3 | 1,963 | 2,943 | 980 |
+| 3 | Kimi K2 Thinking | 1,437 | 1,939 | 502 |
+| 4 | Kimi K2.6 | 2,421 | 3,401 | 980 |
+| 5 | Kimi K2.5 | 2,245 | 3,225 | 980 |
+| **Total** |  | **10,111** | **14,535** | **4,424** |
 
 There is exactly one dispatch per planned turn and no automatic retry.
 
@@ -43,24 +42,23 @@ There is exactly one dispatch per planned turn and no automatic retry.
 
 | Order | Exact generation route | Input / output per 1M | Historical-length estimate | 16,384-output scenario |
 |---:|---|---:|---:|---:|
-| 1 | MiniMax M2.5, Novita FP8 | $0.30 / $1.20 | $1.80 | $3.65 |
-| 2 | Qwen 3.8 Max, Alibaba | $2.00 / $6.00 | $245.41 | $301.84 |
-| 3 | Kimi K3, DeepInfra BF16 | $2.85 / $14.25 | $471.07 | $696.07 |
-| 4 | Kimi K2 Thinking, Novita BF16 | $0.60 / $2.50 | $50.60 | $80.06 |
-| 5 | Kimi K2.6, DeepInfra FP4 | $0.75 / $3.50 | $162.85 | $195.93 |
-| 6 | Kimi K2.5, DeepInfra FP4 | $0.45 / $2.25 | $98.84 | $119.83 |
-| **Generation total** |  |  | **$1,030.57** | **$1,397.38** |
+| 1 | Qwen 3.8 Max, Alibaba | $2.00 / $6.00 | $245.41 | $301.84 |
+| 2 | Kimi K3, DeepInfra BF16 | $2.85 / $14.25 | $471.07 | $696.07 |
+| 3 | Kimi K2 Thinking, Novita BF16 | $0.60 / $2.50 | $50.60 | $80.06 |
+| 4 | Kimi K2.6, DeepInfra FP4 | $0.75 / $3.50 | $162.85 | $195.93 |
+| 5 | Kimi K2.5, DeepInfra FP4 | $0.45 / $2.25 | $98.84 | $119.83 |
+| **Generation total** |  |  | **$1,028.77** | **$1,393.73** |
 
 The expected 4,424 Gemini 3.5 Flash Flex feedback calls add **$6.45** using
 historical feedback-token means. Final HLE and closeness judging is excluded.
 
 | Planning interpretation | Generation | LFE feedback | Combined inference |
 |---|---:|---:|---:|
-| Mathematical input-only floor; zero completion tokens | about $15.75 | about $2.30 | **about $18.06** |
-| Lower-output case; 4,096 tokens on every model turn | $361.16 | $6.45 expected | **$367.61** |
-| Expected; historical route-specific completion means | $1,030.57 | $6.45 expected | **$1,037.02** |
-| Generation worst case; 16,384 model output, expected feedback | $1,397.38 | $6.45 expected | **$1,403.83** |
-| Planning reserve; full model and feedback output allowances | $1,397.38 | $165.39 | **$1,562.77** |
+| Mathematical input-only floor; zero completion tokens | about $15.72 | about $2.30 | **about $18.02** |
+| Lower-output case; 4,096 tokens on every model turn | about $360.23 | $6.45 expected | **about $366.68** |
+| Expected; historical route-specific completion means | $1,028.77 | $6.45 expected | **$1,035.22** |
+| Generation worst case; 16,384 model output, expected feedback | $1,393.73 | $6.45 expected | **$1,400.18** |
+| Planning reserve; full model and feedback output allowances | $1,393.73 | $165.39 | **$1,559.12** |
 
 These are projections, not provider-guaranteed hard dollar bounds. Exact input
 token totals cannot exist before dispatch: OpenRouter records the selected
@@ -77,35 +75,35 @@ the configured 16,384 completion allowance while feedback stays near its
 historical mean. “Planning reserve” additionally makes every feedback call
 consume its full 8,192-token allowance.
 
-The historical-length projection uses approximately 9.75 million input tokens
-and 183.86 million completion tokens. These are protocol projections, not
+The historical-length projection uses approximately 9.66 million input tokens
+and 182.39 million completion tokens. These are protocol projections, not
 already observed billing totals. The 16,384 scenario keeps the same projected
 inputs and assumes every generation turn consumes the entire output allowance.
 
-## MiniMax-only authorization
+## Completed MiniMax M2.5 run
 
-The MiniMax remainder has 184 coordinates, 184 generation turns, and no LFE
-feedback calls. Its historical-length projection is **$1.80** and its
-16,384-output scenario is **$3.65**. Setting
-`HSLE_OPENROUTER_ROUTE_SELECTION=minimax_m25` makes prepare authenticate only
-the MiniMax Novita FP8 route and require **$3.66** remaining key allowance.
-It does not apply the six-route $1,562.78 gate.
+MiniMax's 184 safely callable coordinates were dispatched exactly once on 25
+August 2026 through Novita FP8. The run produced 144 nonblank responses and 40
+terminal nonresponses, made zero retries, and cost exactly **$1.45656570** as
+reported by the 184 retained OpenRouter settlements. MiniMax has been removed
+from the collaborator launcher; the 13 older paid/no-replay coordinates remain
+excluded and are not safe to resubmit.
 
 ## Credit-purchase fee
 
 OpenRouter separately charges a 5.5% credit-purchase fee, subject to its
-minimum. The fee is not inference. Funding the $1,037.02 expected inference
-entirely with new credits adds about **$57.04**, for approximately $1,094.06
-cash. Funding the $1,562.78 allowance adds about **$85.95**, for approximately
-$1,648.73 cash. Existing credit does not incur a second purchase fee.
+minimum. The fee is not inference. Funding the $1,035.22 expected inference
+entirely with new credits adds about **$56.94**, for approximately $1,092.16
+cash. Funding the $1,559.13 allowance adds about **$85.75**, for approximately
+$1,644.88 cash. Existing credit does not incur a second purchase fee.
 
 ## Why earlier OpenAI and Claude runs cost much less
 
 The engineering census estimates about 0.876 million output tokens for the
 completed three-model OpenAI campaign and about 2.889 million for two Claude
 models. Those are LFE-adjusted estimates, not exact provider-ledger totals. The
-remaining OpenRouter workload projects about **183.86 million completion
-tokens**, roughly 210 times the OpenAI output volume and 64 times the Claude
+remaining OpenRouter workload projects about **182.39 million completion
+tokens**, roughly 208 times the OpenAI output volume and 63 times the Claude
 output volume.
 
 This is a protocol/output-volume difference, not a general OpenRouter markup.

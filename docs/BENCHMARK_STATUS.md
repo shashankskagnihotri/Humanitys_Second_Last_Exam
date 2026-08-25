@@ -1,4 +1,4 @@
-# Benchmark status — 24 August 2026
+# Benchmark status — 25 August 2026
 
 This is Shashank Agnihotri's reconciled 32-model HSLE generation census after
 applying the one-dispatch rule to previously observed blank or malformed
@@ -14,12 +14,12 @@ an incorrect terminal result and is not retried.
 - Models complete across zero-shot, one-shot A, one-shot B, two-shot, and
   learning from experience: **24/32**.
 - Models with a literal nonblank response at every coordinate: **23/32**.
-- Real nonblank answers: **63,769**.
-- Terminal incorrect settlements: **344**.
-- Total scientifically settled coordinates: **64,113**.
-- Scientifically safe-to-call coordinates: **11,044**.
+- Real nonblank answers: **63,764**.
+- Terminal incorrect settlements: **533**.
+- Total scientifically settled coordinates: **64,297**.
+- Scientifically safe-to-call coordinates: **10,860**.
 - Paid/no-replay coordinates: **73**.
-- Total unresolved coordinates: **11,117**.
+- Total unresolved coordinates: **10,933**.
 
 Gemini 2.5 Pro explains the difference between the two completion counts: it
 has 2,454 real answers and one authenticated terminal-incorrect LFE result.
@@ -33,12 +33,12 @@ targets plus 9 text-only models × 417 text-only targets.
 
 | Concrete variant | Complete models | Settled | Safely callable | Paid/no-replay | Unresolved |
 |---|---:|---:|---:|---:|---:|
-| Zero-shot | 26/32 | 13,006 | 2,025 | 15 | 2,040 |
-| One-shot A | 26/32 | 13,019 | 2,011 | 16 | 2,027 |
-| One-shot B | 26/32 | 13,005 | 2,021 | 20 | 2,041 |
-| Two-shot | 26/32 | 13,004 | 2,026 | 16 | 2,042 |
+| Zero-shot | 26/32 | 13,067 | 1,964 | 15 | 1,979 |
+| One-shot A | 26/32 | 13,060 | 1,970 | 16 | 1,986 |
+| One-shot B | 26/32 | 13,044 | 1,982 | 20 | 2,002 |
+| Two-shot | 26/32 | 13,047 | 1,983 | 16 | 1,999 |
 | Learning from experience | 24/32 | 12,079 | 2,961 | 6 | 2,967 |
-| **Total** | **24/32 complete across all five** | **64,113** | **11,044** | **73** | **11,117** |
+| **Total** | **24/32 complete across all five** | **64,297** | **10,860** | **73** | **10,933** |
 
 ## The 24 complete models
 
@@ -70,19 +70,26 @@ incorrect and are not part of unanswered work.
 | `moonshotai/Kimi-K2.6` | 480+0 | 485+0 | 484+2 | 482+1 | 490+1 | 2,421 | 4 | 23 | 7 |
 | `moonshotai/Kimi-K3` | 355+11 | 370+8 | 365+10 | 383+8 | 490+1 | 1,963 | 38 | 401 | 53 |
 | `qwen/qwen3.8-max` | 399+2 | 390+1 | 383+2 | 382+0 | 491+0 | 2,045 | 5 | 321 | 84 |
-| `MiniMaxAI/MiniMax-M2.5` | 61+1 | 41+3 | 39+3 | 43+3 | 0+3 | 184 | 13 | 1,727 | 161 |
+| `MiniMaxAI/MiniMax-M2.5` | 0+1 | 0+3 | 0+3 | 0+3 | 0+3 | 0 | 13 | 1,722 | 350 |
 | `nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16` | 0+0 | 0+0 | 0+0 | 0+0 | 417+0 | 417 | 0 | 1,666 | 2 |
 | `nvidia/Llama-3_3-Nemotron-Super-49B-v1_5` | 0+0 | 0+0 | 0+0 | 0+0 | 332+0 | 332 | 0 | 1,753 | 0 |
-| **Total** | **2,025+15** | **2,011+16** | **2,021+20** | **2,026+16** | **2,961+6** | **11,044** | **73** | **6,700** | **343** |
+| **Total** | **1,964+15** | **1,970+16** | **1,982+20** | **1,983+16** | **2,961+6** | **10,860** | **73** | **6,695** | **532** |
 
 The 24 complete models contribute the other 57,070 settled coordinates:
 57,069 real answers plus Gemini 2.5 Pro's one terminal result.
 
-## Six-model OpenRouter workload
+MiniMax has no safely callable work left. Its 13 no-replay coordinates are
+operational evidence gaps, not model responses, and are not safe to resubmit.
+The zero-retry reconciliation reclassifies 149 responses obtained only on a
+later historical attempt as terminal incorrect; this is why MiniMax now has
+1,722 valid first responses and 350 terminal incorrect outcomes.
+
+## Five-model OpenRouter workload
 
 The third-cluster runner covers Kimi K2 Thinking, Kimi 2.5, Kimi 2.6, Kimi
-K3, Qwen 3.8 Max, and MiniMax M2.5. It contains **10,295** callable
-coordinates and binds **73** paid/no-replay coordinates.
+K3, and Qwen 3.8 Max. It contains **10,111** callable coordinates and binds
+**60** paid/no-replay coordinates. MiniMax is excluded from launcher and worker
+route choices.
 
 | Route | Zero | One A | One B | Two | LFE | Coordinates | Generation turns |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -91,11 +98,10 @@ coordinates and binds **73** paid/no-replay coordinates.
 | Kimi 2.6 | 480 | 485 | 484 | 482 | 490 | 2,421 | 3,401 |
 | Kimi K3 | 355 | 370 | 365 | 383 | 490 | 1,963 | 2,943 |
 | Qwen 3.8 Max | 399 | 390 | 383 | 382 | 491 | 2,045 | 3,027 |
-| MiniMax M2.5 | 61 | 41 | 39 | 43 | 0 | 184 | 184 |
-| **Total** | **2,025** | **2,011** | **2,021** | **2,026** | **2,212** | **10,295** | **14,719** |
+| **Total** | **1,964** | **1,970** | **1,982** | **1,983** | **2,212** | **10,111** | **14,535** |
 
 The 2,212 LFE coordinates also require 4,424 Gemini 3.5 Flash feedback calls.
-The runner therefore makes at most 19,143 single-dispatch API calls if every
+The runner therefore makes at most 18,959 single-dispatch API calls if every
 callable coordinate reaches every planned turn. Final HLE correctness and
 closeness judging is a separate project-owner step and is not included.
 
@@ -106,17 +112,17 @@ SHA-256 is
 Those archive bytes remain unchanged after the archived Sail Research K3
 endpoint disappeared. The live runner records and authenticates a Git-bound
 successor to DeepInfra BF16 without changing any question, prompt, image,
-exclusion, or task vector. It also supports an explicit MiniMax-only selection:
-184 callable coordinates, 184 generation turns, no LFE feedback calls, and a
-$3.66 preflight allowance gate.
+exclusion, or task vector. The archive retains MiniMax provenance, but the live
+runner does not expose a MiniMax selection.
 
 See [the one-command OpenRouter workflow](OPENROUTER_RESUME.md) and
 [the corrected cost audit](OPENROUTER_COSTS.md).
 
 ## What is not complete
 
-Eight models still have unresolved generation coordinates: the six
-OpenRouter models above and the two Nemotron models. Generation completion is
+Eight models still have unresolved generation coordinates: the five callable
+OpenRouter models above, MiniMax's 13 no-replay gaps, and the two Nemotron
+models. Generation completion is
 also not final paper completion. A complete 32-model matrix with both HLE
 correctness and closeness judgments has not yet been assembled, and final
 plots have not yet been produced. The metric code rejects missing coordinates

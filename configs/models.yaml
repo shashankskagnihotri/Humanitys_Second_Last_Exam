@@ -1,34 +1,34 @@
 # Audited generation snapshot and authoritative publication order.
 audited_generation_snapshot:
-  date: 2026-08-24
+  date: 2026-08-25
   expected_coordinates: 75230
-  real_nonblank_responses: 63769
-  terminal_policy_settlements: 344
-  scientifically_settled_coordinates: 64113
-  callable_coordinates: 11044
+  real_nonblank_responses: 63764
+  terminal_policy_settlements: 533
+  scientifically_settled_coordinates: 64297
+  callable_coordinates: 10860
   paid_no_replay_coordinates: 73
-  unresolved_coordinates: 11117
+  unresolved_coordinates: 10933
 
 concrete_variant_census:
   zero_shot:
     complete_models: 26
-    settled: 13006
-    callable: 2025
+    settled: 13067
+    callable: 1964
     paid_no_replay: 15
   one_shot_a:
     complete_models: 26
-    settled: 13019
-    callable: 2011
+    settled: 13060
+    callable: 1970
     paid_no_replay: 16
   one_shot_b:
     complete_models: 26
-    settled: 13005
-    callable: 2021
+    settled: 13044
+    callable: 1982
     paid_no_replay: 20
   two_shot:
     complete_models: 26
-    settled: 13004
-    callable: 2026
+    settled: 13047
+    callable: 1983
     paid_no_replay: 16
   learning_from_experience:
     complete_models: 24
@@ -80,11 +80,11 @@ terminal_variant_authority:
       two_shot: 18
       learning_from_experience: 0
     MiniMaxAI/MiniMax-M2.5:
-      zero_shot: 33
-      one_shot_a: 39
-      one_shot_b: 33
-      two_shot: 37
-      learning_from_experience: 19
+      zero_shot: 74
+      one_shot_a: 85
+      one_shot_b: 75
+      two_shot: 88
+      learning_from_experience: 28
 
 remaining_work_routing:
   public_openrouter_runner:
@@ -93,7 +93,6 @@ remaining_work_routing:
     - moonshotai/Kimi-K2.6
     - moonshotai/Kimi-K3
     - qwen/qwen3.8-max
-    - MiniMaxAI/MiniMax-M2.5
   local_cluster_routes:
     - nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
     - nvidia/Llama-3_3-Nemotron-Super-49B-v1_5
@@ -325,9 +324,9 @@ models:
     family: minimax
     modality: text_only
     generation_status: incomplete
-    real_responses: 1727
-    terminal_settlements: 161
-    callable_coordinates: 184
+    real_responses: 1722
+    terminal_settlements: 350
+    callable_coordinates: 0
     paid_no_replay_coordinates: 13
   - model_id: mistralai/Mistral-7B-Instruct-v0.3
     display_name: Mistral-7B-Instruct-v0.3

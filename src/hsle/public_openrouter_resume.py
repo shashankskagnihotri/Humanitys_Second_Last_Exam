@@ -1,4 +1,4 @@
-"""Portable single-dispatch completion for the six remaining OpenRouter routes.
+"""Portable single-dispatch completion for the five remaining OpenRouter routes.
 
 Every benchmark-model turn is submitted exactly once.  A blank, malformed,
 rejected, or operationally ambiguous first model outcome is recorded as an
@@ -132,10 +132,8 @@ FEEDBACK_COMPLETION_PRICE_PER_MILLION = "4.5"
 MAX_ANSWER_ATTEMPTS = 1
 DEFAULT_SHARD_COUNT = 8
 KIMI_K25_EXPIRATION_DATE = date(2026, 8, 31)
-MINIMUM_OPENROUTER_KEY_ALLOWANCE_USD = Decimal("1562.78")
-MINIMAX_ONLY_KEY_ALLOWANCE_USD = Decimal("3.66")
-DEFAULT_ROUTE_SELECTION = "all"
-MINIMAX_ONLY_ROUTE_SELECTION = "minimax_m25"
+MINIMUM_OPENROUTER_KEY_ALLOWANCE_USD = Decimal("1559.13")
+DEFAULT_ROUTE_SELECTION = "remaining"
 
 _ENV_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]*\Z")
 _PARTITION = re.compile(r"[A-Za-z0-9_.-]+\Z")
@@ -274,6 +272,18 @@ ROUTES: dict[str, RouteSpec] = {
         accepted_response_model_aliases=("minimax/minimax-m2.5-20260211",),
     ),
 }
+
+# MiniMax M2.5 is retained above only to authenticate the immutable six-route
+# input archive and completed provenance.  It is deliberately absent from the
+# collaborator's remaining-work launch scope, so a fresh clone cannot submit
+# those completed coordinates again.
+PENDING_ROUTE_KEYS = (
+    "kimi_k2_thinking",
+    "kimi_k25",
+    "kimi_k26",
+    "kimi_k3",
+    "qwen38_max",
+)
 
 FEEDBACK_ROUTE = RouteSpec(
     route_key=FEEDBACK_ROUTE_KEY,
@@ -549,19 +559,15 @@ if {
 
 
 def selected_route_keys(route_selection: str) -> tuple[str, ...]:
-    """Resolve the two intentionally supported public launch scopes."""
+    """Resolve the sole remaining public launch scope."""
 
     if route_selection == DEFAULT_ROUTE_SELECTION:
-        return tuple(ROUTES)
-    if route_selection == MINIMAX_ONLY_ROUTE_SELECTION:
-        return (MINIMAX_ONLY_ROUTE_SELECTION,)
-    raise PublicResumeError("route selection must be 'all' or 'minimax_m25'")
+        return PENDING_ROUTE_KEYS
+    raise PublicResumeError("route selection must be 'remaining'")
 
 
 def route_selection_allowance(route_selection: str) -> Decimal:
     selected_route_keys(route_selection)
-    if route_selection == MINIMAX_ONLY_ROUTE_SELECTION:
-        return MINIMAX_ONLY_KEY_ALLOWANCE_USD
     return MINIMUM_OPENROUTER_KEY_ALLOWANCE_USD
 
 
@@ -1439,7 +1445,7 @@ def validate_openrouter_live_contract(
     ):
         raise PublicResumeError(
             "Kimi K2.5 reached its model-wide OpenRouter expiration date; "
-            "the six-route workload cannot be launched"
+            "the five-route remaining workload cannot be launched"
         )
     if not api_key or api_key != api_key.strip() or "\r" in api_key or "\n" in api_key:
         raise PublicResumeError("OpenRouter credential has boundary whitespace or is empty")
@@ -1460,9 +1466,11 @@ def validate_openrouter_live_contract(
         auth_data.get("is_management_key") is not False
         or auth_data.get("is_provisioning_key") is not False
     ):
-        raise PublicResumeError("The six-route workload requires an ordinary inference key")
+        raise PublicResumeError(
+            "The five-route remaining workload requires an ordinary inference key"
+        )
     if auth_data.get("is_free_tier") is not False:
-        raise PublicResumeError("The six-route workload requires a paid OpenRouter key")
+        raise PublicResumeError("The five-route remaining workload requires a paid OpenRouter key")
     if "limit_remaining" not in auth_data:
         raise PublicResumeError("OpenRouter credential preflight lacks key-limit evidence")
     key_limit_remaining = auth_data.get("limit_remaining")
@@ -4088,7 +4096,7 @@ def worker(
     shard_index: int,
 ) -> dict[str, Any]:
     validate_api_key_environment_name(api_key_environment_name, require_value=True)
-    if route_key not in ROUTES or _ROUTE_KEY.fullmatch(route_key) is None:
+    if route_key not in PENDING_ROUTE_KEYS or _ROUTE_KEY.fullmatch(route_key) is None:
         raise PublicResumeError("route key is not one of the six frozen routes")
     if shard_count <= 0 or not 0 <= shard_index < shard_count:
         raise PublicResumeError("invalid shard index/count")
@@ -4513,11 +4521,11 @@ def _parser() -> argparse.ArgumentParser:
         if name in {"prepare", "finalize"}:
             child.add_argument(
                 "--route-selection",
-                choices=(DEFAULT_ROUTE_SELECTION, MINIMAX_ONLY_ROUTE_SELECTION),
+                choices=(DEFAULT_ROUTE_SELECTION,),
                 default=DEFAULT_ROUTE_SELECTION,
             )
         if name == "worker":
-            child.add_argument("--route", choices=tuple(ROUTES), required=True)
+            child.add_argument("--route", choices=PENDING_ROUTE_KEYS, required=True)
             child.add_argument("--shard-count", type=int, required=True)
             child.add_argument("--shard-index", type=int, required=True)
     return parser

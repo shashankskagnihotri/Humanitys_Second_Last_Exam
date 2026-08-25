@@ -1,12 +1,10 @@
 #!/usr/bin/env bash
 #SBATCH --no-requeue
-# One entry point for the six release-frozen remaining OpenRouter routes.
+# One entry point for the five remaining OpenRouter routes.
 # Preferred usage (the API key value is never an argument):
 #   export HSLE_OPENROUTER_KEY_ENV=MY_OPENROUTER_KEY
 #   export HSLE_SLURM_PARTITION=PARTITION
 #   bash script/run_remaining_openrouter_benchmarks.sh
-# Set HSLE_OPENROUTER_ROUTE_SELECTION=minimax_m25 for the authorized
-# MiniMax-only remainder; the default remains the complete six-route launch.
 # Two positional arguments remain supported: API_KEY_ENV PARTITION.
 
 set -euo pipefail
@@ -22,11 +20,11 @@ else
   echo "Usage: $0 [API_KEY_ENVIRONMENT_NAME SLURM_PARTITION]" >&2
   exit 2
 fi
-ROUTE_SELECTION=${HSLE_OPENROUTER_ROUTE_SELECTION:-all}
-if [[ ${ROUTE_SELECTION} != all && ${ROUTE_SELECTION} != minimax_m25 ]]; then
-  echo "HSLE_OPENROUTER_ROUTE_SELECTION must be 'all' or 'minimax_m25'." >&2
+if [[ -n ${HSLE_OPENROUTER_ROUTE_SELECTION:-} ]]; then
+  echo "HSLE_OPENROUTER_ROUTE_SELECTION is no longer supported; MiniMax M2.5 is complete." >&2
   exit 2
 fi
+ROUTE_SELECTION=remaining
 if [[ ! ${API_KEY_ENV_NAME} =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
   echo "The API key environment-variable name is malformed." >&2
   exit 2
@@ -163,10 +161,6 @@ else
 fi
 if [[ ${OUTPUT_ROOT} != /* || ${OUTPUT_ROOT} == *","* || ${OUTPUT_ROOT} == *$'\n'* || ${OUTPUT_ROOT} == *$'\r'* ]]; then
   echo "HSLE_OUTPUT_ROOT must be an absolute path without commas or newlines." >&2
-  exit 2
-fi
-if [[ ${ROUTE_SELECTION} == minimax_m25 && ${OUTPUT_ROOT} != "${PROJECT_ROOT}/need_to_be_judged" ]]; then
-  echo "The MiniMax-only run must use the clone's need_to_be_judged directory." >&2
   exit 2
 fi
 WORKER_SCRIPT=${PROJECT_ROOT}/script/workers/run_public_openrouter_resume_shard.sh
@@ -382,11 +376,7 @@ run_with_openrouter_and_optional_hf_only \
 unset HF_TOKEN HUGGINGFACE_TOKEN HUGGINGFACE_HUB_TOKEN
 
 mkdir -p "${OUTPUT_ROOT}/logs" "${OUTPUT_ROOT}/control"
-if [[ ${ROUTE_SELECTION} == minimax_m25 ]]; then
-  declare -a ROUTES=(minimax_m25)
-else
-  declare -a ROUTES=(kimi_k2_thinking kimi_k25 kimi_k26 kimi_k3 qwen38_max minimax_m25)
-fi
+declare -a ROUTES=(kimi_k2_thinking kimi_k25 kimi_k26 kimi_k3 qwen38_max)
 declare -a JOB_IDS=()
 declare -a SUBMITTED_JOB_IDS=()
 SUBMISSION_RELEASED=0

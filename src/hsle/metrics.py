@@ -21,20 +21,20 @@ SETTING_ORDER = (
 
 _AUDITED_TOTALS = {
     "expected_coordinates": 75_230,
-    "real_nonblank_responses": 63_769,
-    "terminal_policy_settlements": 344,
-    "callable_coordinates": 11_044,
+    "real_nonblank_responses": 63_764,
+    "terminal_policy_settlements": 533,
+    "callable_coordinates": 10_860,
     "paid_no_replay_coordinates": 73,
 }
 _AUDITED_DERIVED_TOTALS = {
-    "scientifically_settled_coordinates": 64_113,
-    "unresolved_coordinates": 11_117,
+    "scientifically_settled_coordinates": 64_297,
+    "unresolved_coordinates": 10_933,
 }
 _AUDITED_VARIANTS = {
-    "zero_shot": (26, 13_006, 2_025, 15),
-    "one_shot_a": (26, 13_019, 2_011, 16),
-    "one_shot_b": (26, 13_005, 2_021, 20),
-    "two_shot": (26, 13_004, 2_026, 16),
+    "zero_shot": (26, 13_067, 1_964, 15),
+    "one_shot_a": (26, 13_060, 1_970, 16),
+    "one_shot_b": (26, 13_044, 1_982, 20),
+    "two_shot": (26, 13_047, 1_983, 16),
     "learning_from_experience": (24, 12_079, 2_961, 6),
 }
 _AUDITED_REMAINING_ROUTES = {
@@ -44,7 +44,6 @@ _AUDITED_REMAINING_ROUTES = {
         "moonshotai/Kimi-K2.6",
         "moonshotai/Kimi-K3",
         "qwen/qwen3.8-max",
-        "MiniMaxAI/MiniMax-M2.5",
     },
     "local_cluster_routes": {
         "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16",
@@ -242,12 +241,12 @@ def _load_registry() -> list[dict[str, Any]]:
             f"configs/models.yaml generation-status census must be {_STATUS_COUNTS}; "
             f"found {status_counts}"
         )
-    incomplete_models = {
-        row["model_id"] for row in registry if row["generation_status"] == "incomplete"
+    callable_models = {
+        row["model_id"] for row in registry if row["callable_coordinates"] > 0
     }
-    if routed_models != incomplete_models:
+    if routed_models != callable_models:
         raise ValueError(
-            "configs/models.yaml remaining-work routing must cover exactly the incomplete models"
+            "configs/models.yaml remaining-work routing must cover exactly the safely callable models"
         )
     totals = {
         "expected_coordinates": sum(
