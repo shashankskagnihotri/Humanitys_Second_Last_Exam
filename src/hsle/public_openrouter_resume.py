@@ -4220,7 +4220,8 @@ def finalize(
         != KIMI_K3_ENDPOINT_SUCCESSOR_CONTRACT
         or prepare_record.get("endpoint_successor_contract_sha256")
         != KIMI_K3_ENDPOINT_SUCCESSOR_CONTRACT_SHA256
-        or prepare_record.get("lfe_feedback_route") != asdict(FEEDBACK_ROUTE)
+        or canonical_json_sha256(prepare_record.get("lfe_feedback_route"))
+        != canonical_json_sha256(asdict(FEEDBACK_ROUTE))
         or prepare_record.get("lfe_feedback_prompt_sha256")
         != FEEDBACK_JUDGE_PROMPT_SHA256
         or prepare_record.get("lfe_feedback_response_schema_sha256")
