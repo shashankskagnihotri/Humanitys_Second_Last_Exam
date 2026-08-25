@@ -36,6 +36,56 @@ concrete_variant_census:
     callable: 2961
     paid_no_replay: 6
 
+# Exact terminal-incorrect distribution for the fixed pre-Nemotron census.
+# The final Nano/Super distribution is derived from their signed result files.
+terminal_variant_authority:
+  schema_version: 1
+  kind: hsle_registry_terminal_variant_authority_v1
+  classification: authenticated_terminal_incorrect
+  models:
+    gemini-2.5-pro:
+      zero_shot: 0
+      one_shot_a: 0
+      one_shot_b: 0
+      two_shot: 0
+      learning_from_experience: 1
+    moonshotai/Kimi-K2-Thinking:
+      zero_shot: 0
+      one_shot_a: 0
+      one_shot_b: 0
+      two_shot: 0
+      learning_from_experience: 1
+    moonshotai/Kimi-K2.5:
+      zero_shot: 10
+      one_shot_a: 7
+      one_shot_b: 7
+      two_shot: 11
+      learning_from_experience: 0
+    moonshotai/Kimi-K2.6:
+      zero_shot: 4
+      one_shot_a: 0
+      one_shot_b: 2
+      two_shot: 1
+      learning_from_experience: 0
+    moonshotai/Kimi-K3:
+      zero_shot: 13
+      one_shot_a: 15
+      one_shot_b: 17
+      two_shot: 8
+      learning_from_experience: 0
+    qwen/qwen3.8-max:
+      zero_shot: 22
+      one_shot_a: 23
+      one_shot_b: 21
+      two_shot: 18
+      learning_from_experience: 0
+    MiniMaxAI/MiniMax-M2.5:
+      zero_shot: 33
+      one_shot_a: 39
+      one_shot_b: 33
+      two_shot: 37
+      learning_from_experience: 19
+
 remaining_work_routing:
   public_openrouter_runner:
     - moonshotai/Kimi-K2-Thinking
