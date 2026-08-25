@@ -5,6 +5,8 @@
 #   export HSLE_OPENROUTER_KEY_ENV=MY_OPENROUTER_KEY
 #   export HSLE_SLURM_PARTITION=PARTITION
 #   bash script/run_remaining_openrouter_benchmarks.sh
+# Set HSLE_OPENROUTER_ROUTE_SELECTION=minimax_m25 for the authorized
+# MiniMax-only remainder; the default remains the complete six-route launch.
 # Two positional arguments remain supported: API_KEY_ENV PARTITION.
 
 set -euo pipefail
@@ -20,12 +22,17 @@ else
   echo "Usage: $0 [API_KEY_ENVIRONMENT_NAME SLURM_PARTITION]" >&2
   exit 2
 fi
+ROUTE_SELECTION=${HSLE_OPENROUTER_ROUTE_SELECTION:-all}
+if [[ ${ROUTE_SELECTION} != all && ${ROUTE_SELECTION} != minimax_m25 ]]; then
+  echo "HSLE_OPENROUTER_ROUTE_SELECTION must be 'all' or 'minimax_m25'." >&2
+  exit 2
+fi
 if [[ ! ${API_KEY_ENV_NAME} =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
   echo "The API key environment-variable name is malformed." >&2
   exit 2
 fi
 case ${API_KEY_ENV_NAME} in
-  HF_TOKEN|HUGGINGFACE_TOKEN|HUGGINGFACE_HUB_TOKEN|PATH|HOME|XDG_CACHE_HOME|HSLE_OPENROUTER_KEY_ENV|HSLE_SLURM_PARTITION|HSLE_DATASET_ROOT|HSLE_INPUT_ROOT|HSLE_OUTPUT_ROOT|HSLE_PUBLIC_RESUME_SHARDS|HSLE_PUBLIC_RESUME_SKIP_INSTALL|HSLE_VALIDATE_OFFICIAL_HF|HSLE_PUBLIC_API_KEY_ENV_NAME|HSLE_PUBLIC_PROJECT_ROOT|HSLE_PUBLIC_OUTPUT_ROOT|HSLE_PUBLIC_ROUTE|HSLE_PUBLIC_SHARD_COUNT|SLURM_*|SBATCH_*)
+  HF_TOKEN|HUGGINGFACE_TOKEN|HUGGINGFACE_HUB_TOKEN|PATH|HOME|XDG_CACHE_HOME|HSLE_OPENROUTER_KEY_ENV|HSLE_OPENROUTER_ROUTE_SELECTION|HSLE_SLURM_PARTITION|HSLE_DATASET_ROOT|HSLE_INPUT_ROOT|HSLE_OUTPUT_ROOT|HSLE_PUBLIC_RESUME_SHARDS|HSLE_PUBLIC_RESUME_SKIP_INSTALL|HSLE_VALIDATE_OFFICIAL_HF|HSLE_PUBLIC_API_KEY_ENV_NAME|HSLE_PUBLIC_PROJECT_ROOT|HSLE_PUBLIC_OUTPUT_ROOT|HSLE_PUBLIC_ROUTE|HSLE_PUBLIC_ROUTE_SELECTION|HSLE_PUBLIC_SHARD_COUNT|SLURM_*|SBATCH_*)
     echo "The OpenRouter key name collides with a reserved controller or Slurm variable." >&2
     exit 2
     ;;
@@ -156,6 +163,10 @@ else
 fi
 if [[ ${OUTPUT_ROOT} != /* || ${OUTPUT_ROOT} == *","* || ${OUTPUT_ROOT} == *$'\n'* || ${OUTPUT_ROOT} == *$'\r'* ]]; then
   echo "HSLE_OUTPUT_ROOT must be an absolute path without commas or newlines." >&2
+  exit 2
+fi
+if [[ ${ROUTE_SELECTION} == minimax_m25 && ${OUTPUT_ROOT} != "${PROJECT_ROOT}/need_to_be_judged" ]]; then
+  echo "The MiniMax-only run must use the clone's need_to_be_judged directory." >&2
   exit 2
 fi
 WORKER_SCRIPT=${PROJECT_ROOT}/script/workers/run_public_openrouter_resume_shard.sh
@@ -363,14 +374,19 @@ run_with_openrouter_and_optional_hf_only \
   --output-root "${OUTPUT_ROOT}" \
   --api-key-env "${API_KEY_ENV_NAME}" \
   --partition "${PARTITION_NAME}" \
-  --shard-count "${SHARD_COUNT}"
+  --shard-count "${SHARD_COUNT}" \
+  --route-selection "${ROUTE_SELECTION}"
 
 # HF_TOKEN is accepted only by the optional prepare-time official-source
 # validation.  It and alternate Hugging Face credentials cannot reach Slurm.
 unset HF_TOKEN HUGGINGFACE_TOKEN HUGGINGFACE_HUB_TOKEN
 
 mkdir -p "${OUTPUT_ROOT}/logs" "${OUTPUT_ROOT}/control"
-declare -a ROUTES=(kimi_k2_thinking kimi_k25 kimi_k26 kimi_k3 qwen38_max minimax_m25)
+if [[ ${ROUTE_SELECTION} == minimax_m25 ]]; then
+  declare -a ROUTES=(minimax_m25)
+else
+  declare -a ROUTES=(kimi_k2_thinking kimi_k25 kimi_k26 kimi_k3 qwen38_max minimax_m25)
+fi
 declare -a JOB_IDS=()
 declare -a SUBMITTED_JOB_IDS=()
 SUBMISSION_RELEASED=0
@@ -453,7 +469,7 @@ FINALIZER_JOB_ID=$(sbatch \
   --time 02:00:00 \
   --output "${OUTPUT_ROOT}/logs/%x-%j.out" \
   --error "${OUTPUT_ROOT}/logs/%x-%j.err" \
-  --export "PATH=/usr/bin:/bin,HSLE_INPUT_ROOT=${INPUT_ROOT},HSLE_PUBLIC_PROJECT_ROOT=${PROJECT_ROOT},HSLE_PUBLIC_OUTPUT_ROOT=${OUTPUT_ROOT}" \
+  --export "PATH=/usr/bin:/bin,HSLE_INPUT_ROOT=${INPUT_ROOT},HSLE_PUBLIC_PROJECT_ROOT=${PROJECT_ROOT},HSLE_PUBLIC_OUTPUT_ROOT=${OUTPUT_ROOT},HSLE_PUBLIC_ROUTE_SELECTION=${ROUTE_SELECTION}" \
   "${WORKER_SCRIPT}" finalize)
 FINALIZER_JOB_ID=${FINALIZER_JOB_ID%%;*}
 if [[ ! ${FINALIZER_JOB_ID} =~ ^[0-9]+$ ]]; then
@@ -467,5 +483,5 @@ if ! scontrol release "${GATE_JOB_ID}"; then
 fi
 SUBMISSION_RELEASED=1
 echo "Submitted transfer-manifest finalizer: ${FINALIZER_JOB_ID}"
-echo "Released complete six-route campaign through gate: ${GATE_JOB_ID}"
+echo "Released ${ROUTE_SELECTION} OpenRouter campaign through gate: ${GATE_JOB_ID}"
 echo "Results will be collected in: ${OUTPUT_ROOT}"

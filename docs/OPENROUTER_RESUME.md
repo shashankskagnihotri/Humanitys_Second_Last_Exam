@@ -8,7 +8,8 @@ project, downloads the complete pinned HSLE Hugging Face dataset, authenticates
 all inputs and live routes, submits the arrays, and writes structured results.
 
 The six models are Kimi K2 Thinking, Kimi 2.5, Kimi 2.6, Kimi K3, Qwen 3.8
-Max, and MiniMax M2.5.
+Max, and MiniMax M2.5. The default launches all six. An explicitly selected
+MiniMax-only mode launches only its authenticated 184-coordinate remainder.
 
 ## Run it
 
@@ -21,12 +22,28 @@ export HSLE_SLURM_PARTITION=YOUR_PARTITION
 bash script/run_remaining_openrouter_benchmarks.sh
 ```
 
+For the authorized MiniMax-only run, use the existing `OPENROUTER_API_KEY`
+variable, leave the output at the required `need_to_be_judged/` path, and add
+the route selection:
+
+```bash
+unset HSLE_OUTPUT_ROOT
+export HSLE_OPENROUTER_KEY_ENV=OPENROUTER_API_KEY
+export HSLE_OPENROUTER_ROUTE_SELECTION=minimax_m25
+export HSLE_SLURM_PARTITION=YOUR_PARTITION
+bash script/run_remaining_openrouter_benchmarks.sh
+```
+
+This mode authenticates only `minimax_m25`, applies a $3.66 key-allowance gate,
+submits only its array, and finalizes exactly its 184 expected results. Omitting
+`HSLE_OPENROUTER_ROUTE_SELECTION` retains the six-route behavior.
+
 The same controller can be scheduled:
 
 ```bash
 sbatch \
   --partition "$HSLE_SLURM_PARTITION" \
-  --export="PATH,HOME,XDG_CACHE_HOME,HSLE_OPENROUTER_KEY_ENV,HSLE_SLURM_PARTITION,${HSLE_OPENROUTER_KEY_ENV}" \
+  --export="PATH,HOME,XDG_CACHE_HOME,HSLE_OPENROUTER_KEY_ENV,HSLE_OPENROUTER_ROUTE_SELECTION,HSLE_SLURM_PARTITION,${HSLE_OPENROUTER_KEY_ENV}" \
   script/run_remaining_openrouter_benchmarks.sh
 ```
 
@@ -65,12 +82,12 @@ No Hugging Face credential is needed because the HSLE dataset is public.
    every exact provider endpoint, price, context limit, output limit, and
    parameter contract before any `sbatch` call. Free-tier, management, and
    provisioning keys are rejected; an ordinary paid inference key is required.
-   When the inference key has a numeric spending limit, at least **$1,501.72**
-   must remain under that limit.
-8. Stages a held release gate, one bounded Slurm array for each of the six
-   routes, and a dependent finalizer. Only after every submission succeeds does
-   it release the gate; a submission or release failure cancels the exact
-   staged job IDs before any route can make a paid call.
+   When the inference key has a numeric spending limit, the default launch
+   requires **$1,562.78** remaining. MiniMax-only requires **$3.66**.
+8. Stages a held release gate, one bounded Slurm array per selected route, and
+   a dependent finalizer. Only after every submission succeeds does it release
+   the gate; a submission or release failure cancels the exact staged job IDs
+   before any route can make a paid call.
 
 Each worker repeats the unpriced key, canonical-alias, modality, endpoint, and
 price checks for its route (and Gemini feedback when that shard needs LFE)
@@ -128,7 +145,7 @@ repriced, or cannot enforce the required parameters.
 | `moonshotai/kimi-k2-thinking` | `novita/bf16` | $0.60 / $2.50 | native |
 | `moonshotai/kimi-k2.5` | `deepinfra/fp4` | $0.45 / $2.25 | native |
 | `moonshotai/kimi-k2.6` | `deepinfra/fp4` | $0.75 / $3.50 | native |
-| `moonshotai/kimi-k3` | `sail-research/fp4` | $2.60 / $13.00 | `max` |
+| `moonshotai/kimi-k3` | `deepinfra/bf16` | $2.85 / $14.25 | `max` |
 | `qwen/qwen3.8-max` | `alibaba` | $2.00 / $6.00 | `xhigh` |
 | `minimax/minimax-m2.5` | `novita/fp8` | $0.30 / $1.20 | native |
 | `google/gemini-3.5-flash` LFE feedback | `google-ai-studio/flex` | $0.75 / $4.50 | `low` |
@@ -136,16 +153,22 @@ repriced, or cannot enforce the required parameters.
 All payloads use `provider.only`, an exact provider order,
 `allow_fallbacks=false`, `require_parameters=true`, and a pinned maximum price.
 Public model IDs are sent because the dated canonical aliases are not callable
-lookup IDs; returned dated aliases are accepted and recorded.
+lookup IDs; returned dated aliases are accepted and recorded. Endpoint
+quantization is also verified and persisted.
 
-The controller allows four active shards for each Novita, DeepInfra, and
-Alibaba route, while the new Sail Research Kimi K3 route stays at one. Thus the
-two shared Novita routes are capped at eight concurrent workers in total and so
-are the two shared DeepInfra routes; Alibaba is capped at four and Sail at one.
-Historical campaign evidence supports the Novita, DeepInfra, and Alibaba caps
-while giving Kimi 2.5 enough throughput to finish before expiration. Sail
-Research is a new endpoint with no historical concurrency evidence here, so
-Kimi K3 is deliberately serialized at one active worker.
+The immutable v3 input archive still records Sail Research FP4 as K3's
+then-current request endpoint. Sail is no longer in OpenRouter's live endpoint
+catalog. No question, prompt, image, exclusion, or task-vector byte was
+changed: the runner instead binds an explicit Git-side successor contract from
+Sail Research FP4 to DeepInfra BF16. The successor contract and both the
+archived and active route-contract hashes are signed into prepare evidence and
+the final transfer manifest.
+
+The controller allows four active shards for Kimi K2 Thinking, Kimi 2.5, Kimi
+2.6, Qwen, and MiniMax, while Kimi K3 stays at one. Thus the two Novita routes
+can have eight workers total, the three DeepInfra routes can have nine, and
+Alibaba can have four. K3 remains deliberately serialized even though it now
+shares DeepInfra with Kimi 2.5 and Kimi 2.6.
 Provider-specific generation admissions are spaced before durable intent
 publication. Gemini feedback admissions use one shared one-second gate across
 all workers, so waiting for capacity cannot create a false no-replay settlement.
@@ -182,11 +205,13 @@ need_to_be_judged/
 └── RUN_MANIFEST.json        # final authenticated inventory and completion census
 ```
 
-Set `HSLE_OUTPUT_ROOT` to an absolute path before launch to place the entire
-tree elsewhere. It must not equal or contain the clone and must not overlap the
-dataset cache, authenticated input cache, or virtual environment. The one
-permitted child of the clone is the default ignored `need_to_be_judged/`
-directory; other custom locations must be outside the clone. The final HLE
+For the default six-route launch, set `HSLE_OUTPUT_ROOT` to an absolute path to
+place the entire tree elsewhere. It must not equal or contain the clone and
+must not overlap the dataset cache, authenticated input cache, or virtual
+environment. The one permitted child of the clone is the default ignored
+`need_to_be_judged/` directory; other custom locations must be outside the
+clone. MiniMax-only mode requires the default clone-local
+`need_to_be_judged/` directory. The final HLE
 correctness and 0–10 closeness judgments are not run on the third user's
 OpenRouter account; the returned generation results are explicitly marked as
 requiring Shashank Agnihotri's final Gemini judging step.
@@ -210,9 +235,10 @@ is safe. Do not start a second controller against the same output directory
 while an earlier array or finalizer is active. Signed successful results are
 validated and skipped. Any existing durable intent without a valid settlement
 becomes a paid ambiguity and is not replayed. The finalizer succeeds only when
-all six arrays produced a scientifically terminal model result for every one
-of the 10,295 callable coordinates and no LFE feedback call remains
-operationally incomplete. It also requires the exact top-level output topology;
+every selected array produced a scientifically terminal model result for its
+full authenticated vector and no selected LFE feedback call remains
+operationally incomplete. That is 10,295 coordinates for the default launch or
+184 for MiniMax-only. It also requires the exact top-level output topology;
 otherwise it writes no completion manifest and exits nonzero.
 
 This workflow makes real paid provider calls. It has no smoke-test or trial-call

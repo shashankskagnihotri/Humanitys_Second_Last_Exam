@@ -103,6 +103,12 @@ The authenticated v3 input bundle is in the complete Hugging Face dataset at
 immutable revision `aeda08b2536a19e698d027fd4f701eea78c9171d`. Its
 SHA-256 is
 `ced06f31b7d82a58db28391f6e9bf09293a88933480f6b5354784ce98d3ede5f`.
+Those archive bytes remain unchanged after the archived Sail Research K3
+endpoint disappeared. The live runner records and authenticates a Git-bound
+successor to DeepInfra BF16 without changing any question, prompt, image,
+exclusion, or task vector. It also supports an explicit MiniMax-only selection:
+184 callable coordinates, 184 generation turns, no LFE feedback calls, and a
+$3.66 preflight allowance gate.
 
 See [the one-command OpenRouter workflow](OPENROUTER_RESUME.md) and
 [the corrected cost audit](OPENROUTER_COSTS.md).

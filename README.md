@@ -153,8 +153,13 @@ the third user's OpenRouter account.
 
 See [the complete one-command contract](docs/OPENROUTER_RESUME.md) and
 [the corrected cost audit](docs/OPENROUTER_COSTS.md). The historical-output
-projection is about **$995.70 inference**; the main cost driver is native
+projection is about **$1,037.02 inference**; the main cost driver is native
 reasoning-token volume, especially Kimi K3, not a general OpenRouter markup.
+The immutable v3 input archive remains unchanged; the live runner explicitly
+binds K3's vanished Sail endpoint to DeepInfra BF16. An opt-in
+`HSLE_OPENROUTER_ROUTE_SELECTION=minimax_m25` mode runs only MiniMax's 184
+remaining coordinates with a $3.66 allowance gate and the same zero-retry
+contract.
 
 ## General reproduction pipeline
 

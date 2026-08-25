@@ -40,9 +40,11 @@ if [[ ${MODE} == worker ]]; then
     --shard-count "${SHARD_COUNT}" \
     --shard-index "${SHARD_INDEX}"
 elif [[ ${MODE} == finalize ]]; then
+  ROUTE_SELECTION=${HSLE_PUBLIC_ROUTE_SELECTION:-all}
   exec "${PYTHON}" -m hsle.public_openrouter_resume finalize \
     --project-root "${PROJECT_ROOT}" \
-    --output-root "${OUTPUT_ROOT}"
+    --output-root "${OUTPUT_ROOT}" \
+    --route-selection "${ROUTE_SELECTION}"
 else
   echo "Worker mode must be 'worker' or 'finalize'." >&2
   exit 2

@@ -58,6 +58,9 @@ from hsle._public_openrouter_core import (
 SCHEMA_VERSION = 2
 INPUT_DIRECTORY_NAME = ".hsle_openrouter_single_dispatch_inputs_v3"
 INPUT_MANIFEST_FILENAME = "INPUT_MANIFEST.json"
+EXPECTED_INPUT_ARCHIVE_SHA256 = (
+    "ced06f31b7d82a58db28391f6e9bf09293a88933480f6b5354784ce98d3ede5f"
+)
 EXPECTED_INPUT_MANIFEST_FILE_SHA256 = (
     "14b4acec90f1cb2262b38049ced4446dcdeca7cb44484d6ccd3ad4d1f756fdd4"
 )
@@ -94,12 +97,14 @@ RESERVED_API_KEY_ENVIRONMENT_NAMES = RESERVED_HF_CREDENTIAL_NAMES | frozenset(
         "HSLE_INPUT_ROOT",
         "HSLE_OUTPUT_ROOT",
         "HSLE_PUBLIC_RESUME_SHARDS",
+        "HSLE_OPENROUTER_ROUTE_SELECTION",
         "HSLE_PUBLIC_RESUME_SKIP_INSTALL",
         "HSLE_VALIDATE_OFFICIAL_HF",
         "HSLE_PUBLIC_API_KEY_ENV_NAME",
         "HSLE_PUBLIC_PROJECT_ROOT",
         "HSLE_PUBLIC_OUTPUT_ROOT",
         "HSLE_PUBLIC_ROUTE",
+        "HSLE_PUBLIC_ROUTE_SELECTION",
         "HSLE_PUBLIC_SHARD_COUNT",
     }
 )
@@ -127,7 +132,10 @@ FEEDBACK_COMPLETION_PRICE_PER_MILLION = "4.5"
 MAX_ANSWER_ATTEMPTS = 1
 DEFAULT_SHARD_COUNT = 8
 KIMI_K25_EXPIRATION_DATE = date(2026, 8, 31)
-MINIMUM_OPENROUTER_KEY_ALLOWANCE_USD = Decimal("1501.72")
+MINIMUM_OPENROUTER_KEY_ALLOWANCE_USD = Decimal("1562.78")
+MINIMAX_ONLY_KEY_ALLOWANCE_USD = Decimal("3.66")
+DEFAULT_ROUTE_SELECTION = "all"
+MINIMAX_ONLY_ROUTE_SELECTION = "minimax_m25"
 
 _ENV_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]*\Z")
 _PARTITION = re.compile(r"[A-Za-z0-9_.-]+\Z")
@@ -153,6 +161,7 @@ class RouteSpec:
     max_tokens: int
     prompt_price_per_million: str
     completion_price_per_million: str
+    endpoint_quantization: str
     reasoning_effort: str = ""
     predecessor_failed_request_model_id: str = ""
     accepted_response_model_aliases: tuple[str, ...] = ()
@@ -183,6 +192,7 @@ ROUTES: dict[str, RouteSpec] = {
         max_tokens=16_384,
         prompt_price_per_million="0.6",
         completion_price_per_million="2.5",
+        endpoint_quantization="bf16",
         accepted_response_model_aliases=("moonshotai/kimi-k2-thinking-20251106",),
     ),
     "kimi_k25": RouteSpec(
@@ -197,6 +207,7 @@ ROUTES: dict[str, RouteSpec] = {
         max_tokens=16_384,
         prompt_price_per_million="0.45",
         completion_price_per_million="2.25",
+        endpoint_quantization="fp4",
         accepted_response_model_aliases=("moonshotai/kimi-k2.5-0127",),
     ),
     "kimi_k26": RouteSpec(
@@ -211,6 +222,7 @@ ROUTES: dict[str, RouteSpec] = {
         max_tokens=16_384,
         prompt_price_per_million="0.75",
         completion_price_per_million="3.5",
+        endpoint_quantization="fp4",
         predecessor_failed_request_model_id="moonshotai/kimi-k2.6-20260420",
         accepted_response_model_aliases=("moonshotai/kimi-k2.6-20260420",),
     ),
@@ -219,13 +231,14 @@ ROUTES: dict[str, RouteSpec] = {
         scientific_model_id="moonshotai/Kimi-K3",
         catalog_model_id="moonshotai/kimi-k3",
         provider_requested_model_id="moonshotai/kimi-k3",
-        provider_tag="sail-research/fp4",
-        provider_display_name="Sail Research",
+        provider_tag="deepinfra/bf16",
+        provider_display_name="DeepInfra",
         input_modalities=("text", "image", "video"),
-        context_length=974_842,
+        context_length=1_048_576,
         max_tokens=16_384,
-        prompt_price_per_million="2.6",
-        completion_price_per_million="13.0",
+        prompt_price_per_million="2.85",
+        completion_price_per_million="14.25",
+        endpoint_quantization="bf16",
         reasoning_effort="max",
         accepted_response_model_aliases=("moonshotai/kimi-k3-20260715",),
     ),
@@ -241,6 +254,7 @@ ROUTES: dict[str, RouteSpec] = {
         max_tokens=16_384,
         prompt_price_per_million="2.0",
         completion_price_per_million="6.0",
+        endpoint_quantization="unknown",
         reasoning_effort="xhigh",
         accepted_response_model_aliases=("qwen/qwen3.8-max-20260803",),
     ),
@@ -256,6 +270,7 @@ ROUTES: dict[str, RouteSpec] = {
         max_tokens=16_384,
         prompt_price_per_million="0.3",
         completion_price_per_million="1.2",
+        endpoint_quantization="fp8",
         accepted_response_model_aliases=("minimax/minimax-m2.5-20260211",),
     ),
 }
@@ -272,6 +287,7 @@ FEEDBACK_ROUTE = RouteSpec(
     max_tokens=FEEDBACK_MAX_TOKENS,
     prompt_price_per_million=FEEDBACK_PROMPT_PRICE_PER_MILLION,
     completion_price_per_million=FEEDBACK_COMPLETION_PRICE_PER_MILLION,
+    endpoint_quantization="unknown",
     reasoning_effort="low",
     accepted_response_model_aliases=("google/gemini-3.5-flash-20260519",),
 )
@@ -429,7 +445,7 @@ EXPECTED_PARTITION_CONTRACTS = {
         "callable_evaluation_key_vector_sha256": "545d52cd49fb862882f2c51e92bc6a8f9a3d014cd088770d9974b91152f99596",
     },
 }
-EXPECTED_ROUTE_REQUEST_CONTRACTS = {
+ACTIVE_ROUTE_REQUEST_CONTRACTS = {
     route_key: {
         "scientific_model_id": route.scientific_model_id,
         "provider_requested_model_id": route.provider_requested_model_id,
@@ -439,6 +455,114 @@ EXPECTED_ROUTE_REQUEST_CONTRACTS = {
     }
     for route_key, route in ROUTES.items()
 }
+EXPECTED_INPUT_ROUTE_REQUEST_CONTRACTS_V3 = {
+    route_key: dict(contract) for route_key, contract in ACTIVE_ROUTE_REQUEST_CONTRACTS.items()
+}
+# The v3 archive is immutable benchmark input.  Its K3 request metadata names
+# the exact endpoint that existed when the archive was published.  Runtime
+# routing is independently bound below so an endpoint replacement cannot be
+# mistaken for a benchmark-input change.
+EXPECTED_INPUT_ROUTE_REQUEST_CONTRACTS_V3["kimi_k3"] = {
+    "scientific_model_id": "moonshotai/Kimi-K3",
+    "provider_requested_model_id": "moonshotai/kimi-k3",
+    "provider_tag": "sail-research/fp4",
+    "provider_display_name": "Sail Research",
+    "predecessor_failed_request_model_id": "",
+}
+EXPECTED_INPUT_ROUTE_REQUEST_CONTRACTS_V3_SHA256 = (
+    "df82b0c6c8059b881b42ba5ddd1ff1470cd2f54f8e3c503b9b121087f8a284f0"
+)
+ACTIVE_ROUTE_REQUEST_CONTRACTS_SHA256 = (
+    "a600485ebde780ba9027c9c8dc00fd0b7499d92013235f9d08a66351bffe232c"
+)
+KIMI_K3_ENDPOINT_SUCCESSOR_CONTRACT = {
+    "kind": "hsle_openrouter_kimi_k3_endpoint_successor_v1",
+    "effective_date_utc": "2026-08-25",
+    "route_key": "kimi_k3",
+    "scientific_model_id": "moonshotai/Kimi-K3",
+    "provider_requested_model_id": "moonshotai/kimi-k3",
+    "catalog_model_id": "moonshotai/kimi-k3",
+    "canonical_response_model_alias": "moonshotai/kimi-k3-20260715",
+    "input_archive_sha256": EXPECTED_INPUT_ARCHIVE_SHA256,
+    "input_manifest_file_sha256": EXPECTED_INPUT_MANIFEST_FILE_SHA256,
+    "benchmark_input_bytes_changed": False,
+    "automatic_retries": 0,
+    "max_total_attempts_per_turn": 1,
+    "predecessor": {
+        "provider_tag": "sail-research/fp4",
+        "provider_display_name": "Sail Research",
+        "endpoint_quantization": "fp4",
+        "prompt_price_per_million": "2.6",
+        "completion_price_per_million": "13.0",
+        "catalog_disposition": "absent_from_official_endpoint_catalog_on_2026-08-25",
+    },
+    "successor": {
+        "provider_tag": "deepinfra/bf16",
+        "provider_display_name": "DeepInfra",
+        "endpoint_quantization": "bf16",
+        "context_length": 1_048_576,
+        "max_completion_tokens": 16_384,
+        "prompt_price_per_million": "2.85",
+        "completion_price_per_million": "14.25",
+        "required_parameters": [
+            "include_reasoning",
+            "max_tokens",
+            "reasoning",
+            "reasoning_effort",
+            "seed",
+        ],
+    },
+}
+KIMI_K3_ENDPOINT_SUCCESSOR_CONTRACT_SHA256 = (
+    "d6d7cac2e63e4aae1eba6d5fd244da504b8a3e3e56882d3fb781a8842a1b0100"
+)
+if (
+    canonical_json_sha256(KIMI_K3_ENDPOINT_SUCCESSOR_CONTRACT)
+    != KIMI_K3_ENDPOINT_SUCCESSOR_CONTRACT_SHA256
+):
+    raise RuntimeError("Kimi K3 endpoint-successor contract hash differs")
+if (
+    canonical_json_sha256(EXPECTED_INPUT_ROUTE_REQUEST_CONTRACTS_V3)
+    != EXPECTED_INPUT_ROUTE_REQUEST_CONTRACTS_V3_SHA256
+    or canonical_json_sha256(ACTIVE_ROUTE_REQUEST_CONTRACTS)
+    != ACTIVE_ROUTE_REQUEST_CONTRACTS_SHA256
+):
+    raise RuntimeError("OpenRouter route-request contract hash differs")
+_active_k3 = ROUTES["kimi_k3"]
+if {
+    "provider_tag": _active_k3.provider_tag,
+    "provider_display_name": _active_k3.provider_display_name,
+    "endpoint_quantization": _active_k3.endpoint_quantization,
+    "context_length": _active_k3.context_length,
+    "max_completion_tokens": _active_k3.max_tokens,
+    "prompt_price_per_million": _active_k3.prompt_price_per_million,
+    "completion_price_per_million": _active_k3.completion_price_per_million,
+    "required_parameters": [
+        "include_reasoning",
+        "max_tokens",
+        "reasoning",
+        "reasoning_effort",
+        "seed",
+    ],
+} != KIMI_K3_ENDPOINT_SUCCESSOR_CONTRACT["successor"]:
+    raise RuntimeError("Active Kimi K3 route differs from the endpoint-successor contract")
+
+
+def selected_route_keys(route_selection: str) -> tuple[str, ...]:
+    """Resolve the two intentionally supported public launch scopes."""
+
+    if route_selection == DEFAULT_ROUTE_SELECTION:
+        return tuple(ROUTES)
+    if route_selection == MINIMAX_ONLY_ROUTE_SELECTION:
+        return (MINIMAX_ONLY_ROUTE_SELECTION,)
+    raise PublicResumeError("route selection must be 'all' or 'minimax_m25'")
+
+
+def route_selection_allowance(route_selection: str) -> Decimal:
+    selected_route_keys(route_selection)
+    if route_selection == MINIMAX_ONLY_ROUTE_SELECTION:
+        return MINIMAX_ONLY_KEY_ALLOWANCE_USD
+    return MINIMUM_OPENROUTER_KEY_ALLOWANCE_USD
 
 
 def utc_now() -> str:
@@ -633,7 +757,10 @@ def _verify_manifest_inventory(root: Path) -> tuple[dict[str, Any], dict[str, st
         raise PublicResumeError("input manifest route vectors differ from the release")
     if manifest.get("route_partition_contracts") != EXPECTED_PARTITION_CONTRACTS:
         raise PublicResumeError("input manifest route partitions differ from the release")
-    if manifest.get("route_request_contracts") != EXPECTED_ROUTE_REQUEST_CONTRACTS:
+    if (
+        manifest.get("route_request_contracts")
+        != EXPECTED_INPUT_ROUTE_REQUEST_CONTRACTS_V3
+    ):
         raise PublicResumeError("input manifest route request contracts differ")
     files = manifest.get("files")
     if not isinstance(files, list) or len(files) != EXPECTED_INPUT_FILE_COUNT:
@@ -694,8 +821,12 @@ def verify_input_directory(
     _root_path_is_export_safe(root)
     manifest, verified_hashes = _verify_manifest_inventory(root)
     audit: dict[str, Any] = {
+        "input_archive_sha256": EXPECTED_INPUT_ARCHIVE_SHA256,
         "input_manifest_file_sha256": EXPECTED_INPUT_MANIFEST_FILE_SHA256,
         "input_manifest_payload_sha256": canonical_json_sha256(manifest),
+        "input_route_request_contracts_v3_sha256": (
+            EXPECTED_INPUT_ROUTE_REQUEST_CONTRACTS_V3_SHA256
+        ),
         "file_count": len(verified_hashes),
         "byte_inventory_sha256": canonical_json_sha256(verified_hashes),
     }
@@ -1286,6 +1417,7 @@ def validate_openrouter_live_contract(
     *,
     required_route_keys: Sequence[str] | None = None,
     require_initial_allowance: bool = True,
+    minimum_key_allowance_usd: Decimal = MINIMUM_OPENROUTER_KEY_ALLOWANCE_USD,
 ) -> dict[str, Any]:
     """Fail closed on bad auth or an unavailable/drifted exact endpoint.
 
@@ -1342,11 +1474,11 @@ def validate_openrouter_live_contract(
     if (
         require_initial_allowance
         and parsed_key_limit_remaining is not None
-        and parsed_key_limit_remaining < MINIMUM_OPENROUTER_KEY_ALLOWANCE_USD
+        and parsed_key_limit_remaining < minimum_key_allowance_usd
     ):
         raise PublicResumeError(
             "OpenRouter key limit is below the release minimum spending allowance of "
-            f"${MINIMUM_OPENROUTER_KEY_ALLOWANCE_USD}"
+            f"${minimum_key_allowance_usd}"
         )
 
     endpoint_evidence: dict[str, dict[str, Any]] = {}
@@ -1430,6 +1562,10 @@ def validate_openrouter_live_contract(
         required_parameters = _required_live_parameters(route_key, route)
         if endpoint.get("provider_name") != route.provider_display_name:
             raise PublicResumeError(f"OpenRouter provider identity differs for {route_key}")
+        if endpoint.get("quantization") != route.endpoint_quantization:
+            raise PublicResumeError(
+                f"OpenRouter endpoint quantization differs for {route_key}"
+            )
         if isinstance(status, bool) or not isinstance(status, int) or status != 0:
             raise PublicResumeError(
                 f"OpenRouter exact endpoint is not healthy for {route_key} (status {status!r})"
@@ -1470,6 +1606,7 @@ def validate_openrouter_live_contract(
             "provider_requested_model_id": route.provider_requested_model_id,
             "provider_tag": route.provider_tag,
             "provider_display_name": route.provider_display_name,
+            "endpoint_quantization": route.endpoint_quantization,
             "canonical_response_model_alias": canonical_response_alias,
             "model_expiration_date": model_entry.get("expiration_date"),
             "observed_endpoint_name": endpoint.get("name"),
@@ -1489,7 +1626,7 @@ def validate_openrouter_live_contract(
         "credential_authenticated": True,
         "ordinary_inference_key_verified": True,
         "credential_value_persisted": False,
-        "minimum_key_allowance_usd": str(MINIMUM_OPENROUTER_KEY_ALLOWANCE_USD),
+        "minimum_key_allowance_usd": str(minimum_key_allowance_usd),
         "initial_key_allowance_requirement_enforced": require_initial_allowance,
         "key_allowance_satisfied_or_unlimited": True if require_initial_allowance else None,
         "exact_account_balance_persisted": False,
@@ -1504,6 +1641,7 @@ def _validate_recorded_live_contract(
     *,
     expected_route_keys: set[str],
     initial_allowance_required: bool,
+    expected_minimum_key_allowance_usd: Decimal = MINIMUM_OPENROUTER_KEY_ALLOWANCE_USD,
 ) -> None:
     """Validate persisted evidence from a prepare or worker live preflight."""
 
@@ -1517,7 +1655,7 @@ def _validate_recorded_live_contract(
         or value.get("ordinary_inference_key_verified") is not True
         or value.get("credential_value_persisted") is not False
         or value.get("minimum_key_allowance_usd")
-        != str(MINIMUM_OPENROUTER_KEY_ALLOWANCE_USD)
+        != str(expected_minimum_key_allowance_usd)
         or value.get("initial_key_allowance_requirement_enforced")
         is not initial_allowance_required
         or value.get("key_allowance_satisfied_or_unlimited")
@@ -1546,6 +1684,7 @@ def _validate_recorded_live_contract(
             or evidence.get("provider_requested_model_id") != route.provider_requested_model_id
             or evidence.get("provider_tag") != route.provider_tag
             or evidence.get("provider_display_name") != route.provider_display_name
+            or evidence.get("endpoint_quantization") != route.endpoint_quantization
             or evidence.get("canonical_response_model_alias") != canonical_alias
             or (
                 route_key == "kimi_k25"
@@ -3823,16 +3962,24 @@ def prepare(
     api_key_environment_name: str,
     partition: str,
     shard_count: int,
+    route_selection: str = DEFAULT_ROUTE_SELECTION,
 ) -> dict[str, Any]:
     validate_api_key_environment_name(api_key_environment_name, require_value=True)
     validate_partition(partition)
     if shard_count <= 0:
         raise PublicResumeError("shard count must be positive")
+    route_keys = selected_route_keys(route_selection)
+    minimum_key_allowance = route_selection_allowance(route_selection)
     inputs, input_audit = ensure_inputs(project_root)
     official_hle_validation = validate_optional_official_hle_access()
     route_rows = {}
-    for route_key in ROUTES:
+    requires_feedback_route = False
+    for route_key in route_keys:
         tasks = load_route_tasks(inputs, route_key)
+        requires_feedback_route = requires_feedback_route or any(
+            task.coordinate.evaluation_setting == "learning_from_experience"
+            for task in tasks
+        )
         sizes = [
             sum(stable_shard(task, shard_count) == i for task in tasks) for i in range(shard_count)
         ]
@@ -3843,13 +3990,28 @@ def prepare(
             "scientific_model_id": ROUTES[route_key].scientific_model_id,
             "provider_requested_model_id": (ROUTES[route_key].provider_requested_model_id),
             "provider_tag": ROUTES[route_key].provider_tag,
+            "provider_display_name": ROUTES[route_key].provider_display_name,
+            "endpoint_quantization": ROUTES[route_key].endpoint_quantization,
+            "context_length": ROUTES[route_key].context_length,
+            "max_completion_tokens": ROUTES[route_key].max_tokens,
+            "prompt_price_per_million": ROUTES[route_key].prompt_price_per_million,
+            "completion_price_per_million": (
+                ROUTES[route_key].completion_price_per_million
+            ),
             "predecessor_failed_request_model_id": (
                 ROUTES[route_key].predecessor_failed_request_model_id
             ),
         }
     api_key = os.environ[api_key_environment_name]
     try:
-        openrouter_live_validation = validate_openrouter_live_contract(api_key)
+        required_live_route_keys = list(route_keys)
+        if requires_feedback_route:
+            required_live_route_keys.append(FEEDBACK_ROUTE_KEY)
+        openrouter_live_validation = validate_openrouter_live_contract(
+            api_key,
+            required_route_keys=required_live_route_keys,
+            minimum_key_allowance_usd=minimum_key_allowance,
+        )
     finally:
         api_key = ""
     output_root.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -3878,10 +4040,28 @@ def prepare(
             "output_directory_name": output_root.name,
             "partition": partition,
             "shard_count": shard_count,
+            "route_selection": route_selection,
+            "selected_route_keys": list(route_keys),
+            "minimum_key_allowance_usd": str(minimum_key_allowance),
             "api_key_environment_name": api_key_environment_name,
             "api_key_value_persisted": False,
             "single_dispatch_per_turn": True,
             "automatic_retries": 0,
+            "input_archive_sha256": EXPECTED_INPUT_ARCHIVE_SHA256,
+            "input_route_request_contracts_v3": (
+                EXPECTED_INPUT_ROUTE_REQUEST_CONTRACTS_V3
+            ),
+            "input_route_request_contracts_v3_sha256": (
+                EXPECTED_INPUT_ROUTE_REQUEST_CONTRACTS_V3_SHA256
+            ),
+            "active_route_request_contracts": ACTIVE_ROUTE_REQUEST_CONTRACTS,
+            "active_route_request_contracts_sha256": (
+                ACTIVE_ROUTE_REQUEST_CONTRACTS_SHA256
+            ),
+            "endpoint_successor_contract": KIMI_K3_ENDPOINT_SUCCESSOR_CONTRACT,
+            "endpoint_successor_contract_sha256": (
+                KIMI_K3_ENDPOINT_SUCCESSOR_CONTRACT_SHA256
+            ),
             "lfe_feedback_calls_authorized": True,
             "lfe_feedback_route": asdict(FEEDBACK_ROUTE),
             "lfe_feedback_prompt_sha256": FEEDBACK_JUDGE_PROMPT_SHA256,
@@ -3987,10 +4167,24 @@ def worker(
     return record
 
 
-def finalize(*, project_root: Path, output_root: Path) -> dict[str, Any]:
-    """Validate a complete six-route run before publishing its transfer manifest."""
+def finalize(
+    *,
+    project_root: Path,
+    output_root: Path,
+    route_selection: str = DEFAULT_ROUTE_SELECTION,
+) -> dict[str, Any]:
+    """Validate the selected release run before publishing its transfer manifest."""
 
     inputs, _audit = ensure_inputs(project_root, full_scientific_validation=False)
+    route_keys = selected_route_keys(route_selection)
+    minimum_key_allowance = route_selection_allowance(route_selection)
+    prepare_live_route_keys = set(route_keys)
+    if any(
+        task.coordinate.evaluation_setting == "learning_from_experience"
+        for route_key in route_keys
+        for task in load_route_tasks(inputs, route_key)
+    ):
+        prepare_live_route_keys.add(FEEDBACK_ROUTE_KEY)
     try:
         output_root = output_root.resolve(strict=True)
     except OSError as error:
@@ -4006,20 +4200,39 @@ def finalize(*, project_root: Path, output_root: Path) -> dict[str, Any]:
         or not isinstance(shard_count, int)
         or shard_count <= 0
         or not isinstance(prepared_routes, dict)
-        or set(prepared_routes) != set(ROUTES)
+        or set(prepared_routes) != set(route_keys)
+        or prepare_record.get("route_selection") != route_selection
+        or prepare_record.get("selected_route_keys") != list(route_keys)
+        or prepare_record.get("minimum_key_allowance_usd")
+        != str(minimum_key_allowance)
         or prepare_record.get("single_dispatch_per_turn") is not True
         or prepare_record.get("automatic_retries") != 0
+        or prepare_record.get("input_archive_sha256") != EXPECTED_INPUT_ARCHIVE_SHA256
+        or prepare_record.get("input_route_request_contracts_v3")
+        != EXPECTED_INPUT_ROUTE_REQUEST_CONTRACTS_V3
+        or prepare_record.get("input_route_request_contracts_v3_sha256")
+        != EXPECTED_INPUT_ROUTE_REQUEST_CONTRACTS_V3_SHA256
+        or prepare_record.get("active_route_request_contracts")
+        != ACTIVE_ROUTE_REQUEST_CONTRACTS
+        or prepare_record.get("active_route_request_contracts_sha256")
+        != ACTIVE_ROUTE_REQUEST_CONTRACTS_SHA256
+        or prepare_record.get("endpoint_successor_contract")
+        != KIMI_K3_ENDPOINT_SUCCESSOR_CONTRACT
+        or prepare_record.get("endpoint_successor_contract_sha256")
+        != KIMI_K3_ENDPOINT_SUCCESSOR_CONTRACT_SHA256
+        or prepare_record.get("lfe_feedback_route") != asdict(FEEDBACK_ROUTE)
         or prepare_record.get("lfe_feedback_prompt_sha256")
         != FEEDBACK_JUDGE_PROMPT_SHA256
         or prepare_record.get("lfe_feedback_response_schema_sha256")
         != FEEDBACK_RESPONSE_SCHEMA_SHA256
         or prepare_record.get("final_hle_and_closeness_judge_calls_authorized") is not False
     ):
-        raise PublicResumeError("prepare record differs from the six-route release contract")
+        raise PublicResumeError("prepare record differs from the selected release contract")
     _validate_recorded_live_contract(
         prepare_record.get("openrouter_live_validation"),
-        expected_route_keys=set(ROUTES) | {FEEDBACK_ROUTE_KEY},
+        expected_route_keys=prepare_live_route_keys,
         initial_allowance_required=True,
+        expected_minimum_key_allowance_usd=minimum_key_allowance,
     )
 
     originals, links = load_prompt_source_tables(
@@ -4030,7 +4243,7 @@ def finalize(*, project_root: Path, output_root: Path) -> dict[str, Any]:
     if generation_root.is_symlink() or not generation_root.is_dir():
         raise PublicResumeError("generation-results directory is absent or non-regular")
     unexpected_route_entries = {
-        path.name for path in generation_root.iterdir() if path.name not in ROUTES
+        path.name for path in generation_root.iterdir() if path.name not in route_keys
     }
     if unexpected_route_entries:
         raise PublicResumeError(
@@ -4043,7 +4256,8 @@ def finalize(*, project_root: Path, output_root: Path) -> dict[str, Any]:
     total_feedback_failures = 0
     total_results = 0
     allowed_worker_statuses = {"complete", "already_complete"}
-    for route_key, route in ROUTES.items():
+    for route_key in route_keys:
+        route = ROUTES[route_key]
         tasks = load_route_tasks(inputs, route_key)
         tasks_by_key = {task.coordinate.evaluation_key: task for task in tasks}
         expected_shard_sizes = [
@@ -4061,6 +4275,16 @@ def finalize(*, project_root: Path, output_root: Path) -> dict[str, Any]:
             or prepared_route.get("provider_requested_model_id")
             != route.provider_requested_model_id
             or prepared_route.get("provider_tag") != route.provider_tag
+            or prepared_route.get("provider_display_name") != route.provider_display_name
+            or prepared_route.get("endpoint_quantization") != route.endpoint_quantization
+            or prepared_route.get("context_length") != route.context_length
+            or prepared_route.get("max_completion_tokens") != route.max_tokens
+            or prepared_route.get("prompt_price_per_million")
+            != route.prompt_price_per_million
+            or prepared_route.get("completion_price_per_million")
+            != route.completion_price_per_million
+            or prepared_route.get("predecessor_failed_request_model_id")
+            != route.predecessor_failed_request_model_id
         ):
             raise PublicResumeError(f"prepare route partition differs for {route_key}")
 
@@ -4198,9 +4422,9 @@ def finalize(*, project_root: Path, output_root: Path) -> dict[str, Any]:
         total_results += route_status["generation_results"]
         status[route_key] = route_status
 
-    expected_total_results = sum(EXPECTED_VECTOR_COUNTS.values())
+    expected_total_results = sum(EXPECTED_VECTOR_COUNTS[key] for key in route_keys)
     if total_results != expected_total_results:
-        raise PublicResumeError("six-route generation result count does not close")
+        raise PublicResumeError("selected generation result count does not close")
 
     actual_top_level_entries = {
         path.name for path in output_root.iterdir() if path.name != "RUN_MANIFEST.json"
@@ -4232,10 +4456,31 @@ def finalize(*, project_root: Path, output_root: Path) -> dict[str, Any]:
             "schema_version": SCHEMA_VERSION,
             "recorded_at_utc": utc_now(),
             "completion_status": "complete",
-            "routes": {key: asdict(value) for key, value in ROUTES.items()},
+            "route_selection": route_selection,
+            "selected_route_keys": list(route_keys),
+            "minimum_key_allowance_usd": str(minimum_key_allowance),
+            "routes": {key: asdict(ROUTES[key]) for key in route_keys},
+            "input_archive_sha256": EXPECTED_INPUT_ARCHIVE_SHA256,
+            "input_route_request_contracts_v3": (
+                EXPECTED_INPUT_ROUTE_REQUEST_CONTRACTS_V3
+            ),
+            "input_route_request_contracts_v3_sha256": (
+                EXPECTED_INPUT_ROUTE_REQUEST_CONTRACTS_V3_SHA256
+            ),
+            "active_route_request_contracts": ACTIVE_ROUTE_REQUEST_CONTRACTS,
+            "active_route_request_contracts_sha256": (
+                ACTIVE_ROUTE_REQUEST_CONTRACTS_SHA256
+            ),
+            "endpoint_successor_contract": KIMI_K3_ENDPOINT_SUCCESSOR_CONTRACT,
+            "endpoint_successor_contract_sha256": (
+                KIMI_K3_ENDPOINT_SUCCESSOR_CONTRACT_SHA256
+            ),
             "status": status,
             "callable_generation_result_count": total_results,
-            "excluded_paid_no_replay_coordinate_count": 73,
+            "excluded_paid_no_replay_coordinate_count": sum(
+                EXPECTED_PARTITION_CONTRACTS[key]["paid_no_replay_count"]
+                for key in route_keys
+            ),
             "lfe_feedback_judge_call_count": total_feedback_calls,
             "lfe_feedback_failure_count": total_feedback_failures,
             "lfe_feedback_prompt_sha256": FEEDBACK_JUDGE_PROMPT_SHA256,
@@ -4264,6 +4509,12 @@ def _parser() -> argparse.ArgumentParser:
         if name == "prepare":
             child.add_argument("--partition", required=True)
             child.add_argument("--shard-count", type=int, default=DEFAULT_SHARD_COUNT)
+        if name in {"prepare", "finalize"}:
+            child.add_argument(
+                "--route-selection",
+                choices=(DEFAULT_ROUTE_SELECTION, MINIMAX_ONLY_ROUTE_SELECTION),
+                default=DEFAULT_ROUTE_SELECTION,
+            )
         if name == "worker":
             child.add_argument("--route", choices=tuple(ROUTES), required=True)
             child.add_argument("--shard-count", type=int, required=True)
@@ -4280,6 +4531,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             api_key_environment_name=args.api_key_env,
             partition=args.partition,
             shard_count=args.shard_count,
+            route_selection=args.route_selection,
         )
     elif args.command == "worker":
         result = worker(
@@ -4291,7 +4543,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             shard_index=args.shard_index,
         )
     else:
-        result = finalize(project_root=args.project_root, output_root=args.output_root)
+        result = finalize(
+            project_root=args.project_root,
+            output_root=args.output_root,
+            route_selection=args.route_selection,
+        )
     print(json.dumps(result, sort_keys=True))
     return 0
 
