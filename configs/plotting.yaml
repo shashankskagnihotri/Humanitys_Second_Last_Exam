@@ -1,3 +1,42 @@
+# Exact public contract for the current 25-model scored release.
+release:
+  model_ids:
+    - claude-haiku-4-5-20251001
+    - claude-sonnet-4-6
+    - claude-opus-4-7
+    - gemini-2.5-flash
+    - gemini-2.5-flash-lite
+    - gemini-2.5-pro
+    - gpt-5.1
+    - gpt-5.2
+    - gpt-5.4
+    - gpt-5.5
+    - deepseek-ai/deepseek-vl2
+    - google/gemma-2-9b-it
+    - google/gemma-3-27b-it
+    - google/gemma-4-31B-it
+    - internlm/Intern-S1-mini
+    - moonshotai/Kimi-VL-A3B-Thinking
+    - meta-llama/Meta-Llama-3-70B-Instruct
+    - meta-llama/Llama-3.1-70B-Instruct
+    - meta-llama/Llama-3.3-70B-Instruct
+    - llava-hf/llava-onevision-qwen2-7b-ov-hf
+    - MiniMaxAI/MiniMax-M2.5
+    - mistralai/Mistral-7B-Instruct-v0.3
+    - Qwen2-VL-2B-Instruct
+    - Qwen2.5-VL-32B-Instruct
+    - Qwen3-VL-30B-A3B-Instruct
+  lower_bound_model_ids:
+    - moonshotai/Kimi-VL-A3B-Thinking
+    - MiniMaxAI/MiniMax-M2.5
+  expected_coordinate_count: 59155
+  expected_generation_observed_count: 59142
+  expected_hle_observed_count: 59140
+  expected_closeness_observed_count: 59142
+  expected_global_logical_question_units: 47324
+  expected_family_coordinate_count: 58415
+  expected_family_logical_question_units: 46732
+
 settings:
   order:
     - zero_shot
@@ -9,6 +48,11 @@ settings:
     one_shot: One-shot
     two_shot: Two-shot
     learning_from_experience: Learning from Experience
+  colors:
+    zero_shot: "#3B6FB6"
+    one_shot: "#E18D2B"
+    two_shot: "#4B9B69"
+    learning_from_experience: "#865DA8"
   hatches:
     zero_shot: ""
     one_shot: "///"
@@ -17,32 +61,30 @@ settings:
 
 family_order:
   - claude
-  - gemini
-  - gpt
   - deepseek
+  - gemini
   - gemma
+  - gpt
   - internlm
   - kimi
   - llama
   - llava
   - minimax
   - mistral
-  - nemotron
   - qwen
 
 family_colors:
   claude: "#7A4D2A"
-  gemini: "#167C80"
-  gpt: "#2F6FED"
   deepseek: "#55A868"
+  gemini: "#167C80"
   gemma: "#C44E52"
+  gpt: "#2F6FED"
   internlm: "#8172B3"
   kimi: "#D17C2F"
   llama: "#6B8E23"
   llava: "#B59A35"
   minimax: "#E17C9B"
   mistral: "#4C72B0"
-  nemotron: "#4E9B98"
   qwen: "#8F4C99"
 
 output:

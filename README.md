@@ -18,6 +18,13 @@ learning from experience. There are 63,764 real answers, 533 terminal
 incorrect settlements, 10,860 callable coordinates, and 73 paid/no-replay
 coordinates. See [the complete model-by-setting census](docs/BENCHMARK_STATUS.md).
 
+The current scored plot release contains **25 models**: the 24
+generation-complete models plus MiniMax M2.5 under an explicit conservative
+lower-bound policy. It consists of exactly **26 one-page vector PDFs**: two
+all-model plots and HLE-accuracy/closeness pairs for each of the 12 represented
+families. The five pending OpenRouter models and both unfinished Nemotron
+models are not presented as complete and are not included in those figures.
+
 ## Evaluation design
 
 Four named settings produce five concrete response variants because one-shot
@@ -205,17 +212,29 @@ not invent scores for absent generation or judge rows. Real rows require a
 nonblank response; authenticated terminal rows require HLE incorrect and
 closeness 0.
 
-Render figures:
+Render the current exact 25-model figure release from its coordinate-level
+scored layer:
 
 ```bash
 python -m hsle.plotting \
-  --metrics outputs/metrics/model_setting_metrics.csv \
-  --closeness-std outputs/metrics/model_setting_closeness_std.csv \
+  --input outputs/judgments/current_25_model_scored_coordinates.csv \
   --output-dir outputs/figures
 ```
 
-A complete 32-model matrix produces 28 vector PDFs: two all-model figures and
-two for each of 13 families, plus a SHA-256 manifest.
+The plotter validates the exact 59,155-coordinate scored universe before it
+writes anything. The input must retain `concrete_variant`,
+`original_question_id`, binary `hle_correct`, integer `closeness_score`, and
+the three explicit `operational_missing`, `hle_metric_missing`, and
+`closeness_metric_missing` flags. One-shot A/B values are paired by original
+question. All-model plots use each model's native 491- or 417-question cohort;
+a family containing any text-only model is compared on the shared 417 text
+questions, while an all-multimodal family uses all 491 questions.
+
+The output is exactly 26 PDFs and no PNG, SVG, manifest, title, subtitle,
+footnote, or explanatory prose. Bars preserve the four setting colors and
+hatches, model labels preserve the family color scheme, and the rendering
+theme is Seaborn `talk` with `whitegrid`. Generated score layers and PDFs stay
+under the ignored `outputs/` tree and are not committed to Git.
 
 ## Repository boundary
 

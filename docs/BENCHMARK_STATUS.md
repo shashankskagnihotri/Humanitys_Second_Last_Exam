@@ -1,4 +1,4 @@
-# Benchmark status — 25 August 2026
+# Benchmark status — 26 August 2026
 
 This is Shashank Agnihotri's reconciled 32-model HSLE generation census after
 applying the one-dispatch rule to previously observed blank or malformed
@@ -118,12 +118,46 @@ runner does not expose a MiniMax selection.
 See [the one-command OpenRouter workflow](OPENROUTER_RESUME.md) and
 [the corrected cost audit](OPENROUTER_COSTS.md).
 
+## Current 25-model scored plot release
+
+The current scored release contains **25 models across 12 represented
+families**: all 24 generation-complete models plus MiniMax M2.5 under an
+explicit conservative lower-bound projection. Inclusion in this release does
+not reclassify MiniMax's 13 paid/no-replay coordinates as real responses, and
+it does not claim that any pending OpenRouter or Nemotron model is complete.
+
+The release validates **59,155 canonical concrete coordinates**. Generation
+evidence is present for 59,142; HLE score evidence is present for 59,140; and
+effective closeness score evidence is present for 59,142. Missing metric
+evidence is conservatively scored zero only in the plotted projection. Both
+Kimi-VL-A3B-Thinking and MiniMax M2.5 are therefore labeled “lower bound” in
+both metrics; this disclosure is not a claim that all of their underlying
+score evidence is missing.
+
+The all-model summaries contain 47,324 logical model-question-setting units
+and use each model's native 491-question multimodal or 417-question text-only
+cohort. Family figures follow the comparability rule requested for the paper:
+if any model in a family is text-only, every model in that family is compared
+on the same 417 text questions; otherwise all family members use the same 491
+questions. That family projection contains 58,415 concrete coordinates and
+46,732 logical units. One-shot A and B are paired within the original question
+before aggregation.
+
+The final inventory is exactly **26 one-page PDFs**: two all-model plots and
+24 family plots. It contains no PNG or SVG files and no titles, subtitles,
+footnotes, audit prose, or explanatory annotations. The public plotting code
+reproduces this exact cohort, aggregation, styling, and PDF-only contract from
+the coordinate-level scored layer; generated score tables and figures remain
+outside Git.
+
 ## What is not complete
 
 Eight models still have unresolved generation coordinates: the five callable
 OpenRouter models above, MiniMax's 13 no-replay gaps, and the two Nemotron
-models. Generation completion is
-also not final paper completion. A complete 32-model matrix with both HLE
-correctness and closeness judgments has not yet been assembled, and final
-plots have not yet been produced. The metric code rejects missing coordinates
-instead of fabricating scores.
+models. Generation completion is also not final paper completion. A complete
+32-model matrix with both HLE correctness and closeness judgments has not yet
+been assembled. The 25-model PDF release described above is current, but it
+does not include or imply completion of the five pending OpenRouter models or
+either Nemotron model. The general metric code rejects missing coordinates
+instead of fabricating scores; the disclosed lower-bound plot projection is a
+separate, explicit publication policy.

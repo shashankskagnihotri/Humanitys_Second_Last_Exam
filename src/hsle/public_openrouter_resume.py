@@ -4097,7 +4097,10 @@ def worker(
 ) -> dict[str, Any]:
     validate_api_key_environment_name(api_key_environment_name, require_value=True)
     if route_key not in PENDING_ROUTE_KEYS or _ROUTE_KEY.fullmatch(route_key) is None:
-        raise PublicResumeError("route key is not one of the six frozen routes")
+        raise PublicResumeError(
+            "route key is not one of the five pending/selectable routes; "
+            "the immutable input archive contains six historical route definitions"
+        )
     if shard_count <= 0 or not 0 <= shard_index < shard_count:
         raise PublicResumeError("invalid shard index/count")
     api_key = os.environ[api_key_environment_name]
