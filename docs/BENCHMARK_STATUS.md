@@ -127,12 +127,15 @@ not reclassify MiniMax's 13 paid/no-replay coordinates as real responses, and
 it does not claim that any unfinished Kimi, Qwen, or Nemotron model is complete.
 
 The release validates **59,155 canonical concrete coordinates**. Generation
-evidence is present for 59,142; HLE score evidence is present for 59,140; and
-effective closeness score evidence is present for 59,142. Missing metric
-evidence is conservatively scored zero only in the plotted projection. Both
-Kimi-VL-A3B-Thinking and MiniMax M2.5 are therefore labeled “lower bound” in
-both metrics; this disclosure is not a claim that all of their underlying
-score evidence is missing.
+evidence is present for 59,142; HLE score evidence is present for 59,141; and
+effective closeness score evidence is present for 59,142. MiniMax's sole
+otherwise-missing HLE verdict was closed by Gemini 3.5 Flash with an explicit
+formula-preserving constrained fallback; the exact model answer was not
+changed. Missing metric evidence is conservatively scored zero only in the
+plotted projection. Both Kimi-VL-A3B-Thinking and MiniMax M2.5 remain labeled
+“lower bound” in both metrics because their generation layers contain
+disclosed terminal or no-replay gaps; this does not imply that all of their
+underlying score evidence is missing.
 
 The all-model summaries contain 47,324 logical model-question-setting units
 and use each model's native 491-question multimodal or 417-question text-only
