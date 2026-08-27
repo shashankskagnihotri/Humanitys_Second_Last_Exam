@@ -7,23 +7,23 @@ changes when a model receives zero examples, one example, two examples, or
 feedback derived from prior experience.
 
 This is Shashank Agnihotri's clean software repository. It contains benchmark,
-judging, aggregation, plotting, and portable OpenRouter completion code. It
+judging, aggregation, plotting, and pinned local-cluster generation code. It
 does not contain API credentials, model responses, judge responses, metrics,
 plots, logs, cluster reports, or debugging artifacts.
 
-The reconciled 25 August 2026 generation scope contains **32 models**, **4
-named settings**, and **75,230 concrete prompt coordinates**. Twenty-four
+The reconciled 27 August 2026 generation scope contains **33 models**, **4
+named settings**, and **77,685 concrete prompt coordinates**. Twenty-four
 models are complete across zero-shot, one-shot A, one-shot B, two-shot, and
-learning from experience. There are 63,764 real answers, 533 terminal
-incorrect settlements, 10,860 callable coordinates, and 73 paid/no-replay
+learning from experience. There are 63,443 real answers, 449 terminal
+incorrect settlements, 13,725 callable coordinates, and 68 paid/no-replay
 coordinates. See [the complete model-by-setting census](docs/BENCHMARK_STATUS.md).
 
 The current scored plot release contains **25 models**: the 24
 generation-complete models plus MiniMax M2.5 under an explicit conservative
 lower-bound policy. It consists of exactly **26 one-page vector PDFs**: two
 all-model plots and HLE-accuracy/closeness pairs for each of the 12 represented
-families. The five pending OpenRouter models and both unfinished Nemotron
-models are not presented as complete and are not included in those figures.
+families. Unfinished generation models are not presented as complete and are
+not included in those figures.
 
 ## Evaluation design
 
@@ -46,9 +46,15 @@ multimodal: 491 × (1 zero + 2 one-shot + 1 two-shot + 1 LFE) = 2,455
 text-only:  417 × (1 zero + 2 one-shot + 1 two-shot + 1 LFE) = 2,085
 ```
 
-The scope has 23 multimodal and 9 text-only models across 13 families. Stable
+The scope has 24 multimodal and 9 text-only models across 13 families. Stable
 model identifiers, modalities, ordering, and audited generation partitions are
 in [`configs/models.yaml`](configs/models.yaml).
+
+The newest study entry is the exact multimodal
+`Qwen/Qwen3.8-Flash-Next` checkpoint at revision
+`de4b8e4d43b917e7706784d8bb445c9af86a3540`, using its official default
+`reasoning_effort=xhigh`. Its 2,455 coordinates are currently unresolved and
+are not counted among the 24 complete models.
 
 One-shot is paired inside each model-question unit:
 
@@ -77,7 +83,7 @@ release also contains:
 - target-to-instance linkages and full provenance columns;
 - 258 referenced image files;
 - target and context correction manifests; and
-- the authenticated historical six-route OpenRouter single-dispatch input bundle.
+- authenticated provenance and audit metadata for the consolidated release.
 
 Download and validate the complete default snapshot:
 
@@ -124,50 +130,64 @@ Python 3.11 or newer is required. Credentials belong only in the process
 environment or an untracked `.env`; see
 [credential configuration](docs/CREDENTIALS.md).
 
-## Finish the five remaining OpenRouter models on a third cluster
+## Helix local H200 workflow
 
-The portable workflow covers exactly Kimi K2 Thinking, Kimi 2.5, Kimi 2.6,
-Kimi K3, and Qwen 3.8 Max. MiniMax M2.5's safely callable remainder completed
-on 25 August 2026 and is deliberately excluded, so a fresh clone cannot
-duplicate it. The third user sets a Slurm partition, stores their OpenRouter
-credential in a non-reserved environment variable, and identifies that
-variable by name:
+The active collaborator handoff serves capacity-compatible pinned checkpoints
+locally on one Helix `gpu-single` node with eight H200 GPUs. A launchable entry
+command locates or creates a 10-TB workspace, submits a CPU preparation job,
+and submits one dependent exclusive GPU generation job. Preparation creates
+the virtual environment and downloads the pinned model snapshot and pinned
+public HSLE dataset; no compute runs on the login node.
+
+Provide Gemini 3.5 Flash only through a protected key file for inline binary
+learning-from-experience feedback. The pinned public model and dataset
+snapshots use public unauthenticated downloads, and the submitted jobs inherit
+no login-shell credentials:
 
 ```bash
-export MY_OPENROUTER_KEY='...'
-export HSLE_OPENROUTER_KEY_ENV=MY_OPENROUTER_KEY
-export HSLE_SLURM_PARTITION=YOUR_PARTITION
-bash script/run_remaining_openrouter_benchmarks.sh
+export HSLE_GEMINI_KEY_FILE=/secure/path/gemini.key
+
+bash script/run_helix_kimi_k26.sh
+bash script/run_helix_kimi_k25.sh
+bash script/run_helix_kimi_k2_thinking.sh
+bash script/run_helix_qwen38_27b.sh
 ```
 
-The script creates and installs its own virtual environment, downloads the
-complete pinned Hugging Face dataset, authenticates the v3 task bundle and
-every live exact provider route, then submits all five Slurm arrays plus a
-strict completion finalizer.
+Each GPU job cryptographically verifies every downloaded checkpoint shard and
+the model/tokenizer configuration against its signed preparation authority
+before starting the local server.
 
-Every benchmark-model turn is dispatched **exactly once**. There are zero
-automatic retries and no prompt compaction. A blank, malformed, rejected, or
-ambiguous first model outcome is terminal incorrect with closeness 0. LFE
-feedback is obtained automatically from Gemini 3.5 Flash through the same
-OpenRouter credential, also with one dispatch. A failed feedback call is
-recorded as operationally incomplete, receives no model score, and makes the
-strict finalizer fail; it is never retried or charged against the evaluated
-model. The default structured result directory is the Git-ignored
-`need_to_be_judged/` tree.
+The commands cover the complete pinned coordinate universe for their model:
+2,455 coordinates for each multimodal checkpoint and 2,085 text-only
+coordinates for Kimi K2 Thinking. Coordinate concurrency defaults to 16 and
+can be changed with `HSLE_HELIX_CONCURRENCY`; every coordinate preserves its
+internal LFE order.
 
-The remaining workload contains 10,111 callable coordinates, 14,535 benchmark
-generation turns, 4,424 LFE feedback calls, and 60 authenticated prior
-paid/no-replay exclusions. Final HLE and closeness judging is not charged to
-the third user's OpenRouter account.
+Every model or feedback call has an immutable write-ahead intent and at most
+one request attempt. A blank, malformed, or failed first model response is a
+terminal incorrect result. An interrupted intent is never replayed, while a
+coordinate with no intent can resume safely. Structured JSON and an
+import-ready CSV are written below the workspace's
+`need_to_be_judged/<route>/` directory. Final HLE correctness and closeness
+judging is deliberately deferred to the project owner.
 
-See [the complete one-command contract](docs/OPENROUTER_RESUME.md) and
-[the corrected cost audit](docs/OPENROUTER_COSTS.md). The historical-output
-projection is about **$1,035.22 inference**; the main cost driver is native
-reasoning-token volume, especially Kimi K3, not a general OpenRouter markup.
-The immutable v3 input archive remains unchanged; the live runner explicitly
-binds K3's vanished Sail endpoint to DeepInfra BF16. The completed MiniMax
-route remains in the immutable archive only as authenticated historical input;
-neither the launcher nor the worker CLI accepts it as pending work.
+Kimi K3 requires a guarded distributed handoff and fails before workspace
+creation or job submission on the one-node path:
+
+```bash
+bash script/run_helix_kimi_k3.sh
+```
+
+The official Kimi K3 vLLM recipe needs about 1,680 GB of GPU memory, more than
+one eight-H200 Helix node provides, and its supported runtime is a CUDA 13
+container/nightly multi-node path rather than the pip-wheel CPU-offload path.
+K3 remains blocked until a documented 16-GPU Helix allocation and that exact
+official recipe are implemented.
+
+The Qwen entry serves the exact native-multimodal `Qwen/Qwen3.8-27B` checkpoint
+at immutable revision `1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0`; it is a new
+scientific identity and does not inherit evidence from the former hosted Max
+route. See the [complete Helix contract](docs/HELIX_LOCAL.md).
 
 ## General reproduction pipeline
 
@@ -177,7 +197,7 @@ Generate responses:
 
 ```bash
 python -m hsle.benchmark \
-  --provider openrouter \
+  --provider PROVIDER \
   --model provider/model-name \
   --model-id ANALYTICAL_MODEL_ID \
   --setting zero_shot \
@@ -241,14 +261,15 @@ under the ignored `outputs/` tree and are not committed to Git.
 ```text
 .
 ├── configs/                    # Model, provider, and plotting contracts
-├── docs/                       # Status, prompts, corrections, credentials, costs
+├── docs/                       # Status, Helix, prompts, corrections, credentials
 ├── script/
-│   ├── run_remaining_openrouter_benchmarks.sh
-│   └── workers/run_public_openrouter_resume_shard.sh
+│   ├── run_helix_kimi_*.sh     # Four identity entries; K3 fails closed
+│   ├── run_helix_qwen38_27b.sh # Pinned local Qwen3.8 27B entry command
+│   └── workers/helix_*.sh      # CPU preparation and GPU generation
 ├── src/hsle/                   # Benchmark, judge, metrics, plots, runner
 ├── data/                       # Downloaded dataset; ignored
 ├── outputs/                    # Generated artifacts; ignored
-└── need_to_be_judged/          # Third-cluster results; ignored
+└── need_to_be_judged/          # Import-ready generated results; ignored
 ```
 
 No dataset snapshot, response, judgment, metric, plot, log, virtual

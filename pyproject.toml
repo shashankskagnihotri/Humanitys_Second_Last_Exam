@@ -30,6 +30,7 @@ dependencies = [
 hsle-benchmark = "hsle.benchmark:main"
 hsle-download-data = "hsle.download_data:main"
 hsle-judge = "hsle.judge:main"
+hsle-helix-local = "hsle.helix_local:main"
 hsle-metrics = "hsle.metrics:main"
 hsle-plots = "hsle.plotting:main"
 

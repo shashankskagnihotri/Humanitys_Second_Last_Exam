@@ -20,7 +20,9 @@ GEMINI_API_KEY=
 OPENAI_API_KEY=
 ANTHROPIC_API_KEY=
 HF_TOKEN=
+HUGGINGFACE_HUB_TOKEN=
 OPENROUTER_API_KEY=
+HSLE_GEMINI_KEY_FILE=
 
 HSLE_DATASET_REPO=shashankskagnihotri/humanitys-second-last-exam
 HSLE_DATASET_REVISION=aeda08b2536a19e698d027fd4f701eea78c9171d
@@ -49,7 +51,9 @@ set +a
 | `OPENAI_API_KEY` | OpenAI API credential | Generating with the OpenAI provider |
 | `ANTHROPIC_API_KEY` | Anthropic API credential | Generating with the Anthropic provider |
 | `HF_TOKEN` | Hugging Face access token | Accessing separately gated upstream data or model weights; not needed for the public HSLE release |
+| `HUGGINGFACE_HUB_TOKEN` | Alternative Hugging Face access-token name | Generic authenticated upstream access; ignored by the public unauthenticated Helix preparation workflow |
 | `OPENROUTER_API_KEY` | OpenRouter API credential | Generating through OpenRouter |
+| `HSLE_GEMINI_KEY_FILE` | Path to a protected file containing one Gemini key | Helix inline binary LFE feedback |
 | `HSLE_DATASET_REPO` | Hugging Face dataset repository identifier | Optional override of the pinned public default |
 | `HSLE_DATASET_REVISION` | Immutable dataset revision | Optional override of the pinned public default |
 | `OPENROUTER_SITE_URL` | Optional OpenRouter attribution URL | Supplying the optional `HTTP-Referer` header |
@@ -164,6 +168,24 @@ Learning from experience also requires `GEMINI_API_KEY`, even when the
 evaluated model is served by OpenAI, Anthropic, or OpenRouter. The Gemini judge
 evaluates each linked example attempt to generate the binary feedback shown to
 the evaluated model.
+
+## Helix local workflow
+
+The Helix launchers do not accept credentials as command-line arguments. Set
+`HSLE_GEMINI_KEY_FILE` in the process environment to a regular, non-symlink,
+user-owned file with no group or other permissions:
+
+```bash
+export HSLE_GEMINI_KEY_FILE=/secure/path/gemini.key
+bash script/run_helix_kimi_k26.sh
+```
+
+The launcher submits with `--export=NONE` and passes only the non-secret key
+file path to the GPU worker. Preparation downloads the pinned public snapshots
+without authentication. Generation reads the Gemini key from the protected
+file only for at-most-once inline Gemini 3.5 Flash feedback and does not write
+or print the key. Final HLE and closeness judging remains a separate
+project-owner operation. See [the Helix contract](HELIX_LOCAL.md).
 
 ## Local data and generated artifacts
 

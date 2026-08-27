@@ -16,7 +16,6 @@ __pycache__/
 .ruff_cache/
 .mypy_cache/
 .venv/
-.venv-openrouter-benchmark/
 venv/
 env/
 envs/
@@ -32,7 +31,6 @@ plots*/
 model_responses/
 judge_responses/
 need_to_be_judged/
-.hsle_openrouter_single_dispatch_inputs_v3/
 benchmark_inputs/
 debugging/
 reports/

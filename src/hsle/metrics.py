@@ -20,40 +20,43 @@ SETTING_ORDER = (
 )
 
 _AUDITED_TOTALS = {
-    "expected_coordinates": 75_230,
-    "real_nonblank_responses": 63_764,
-    "terminal_policy_settlements": 533,
-    "callable_coordinates": 10_860,
-    "paid_no_replay_coordinates": 73,
+    "expected_coordinates": 77_685,
+    "real_nonblank_responses": 63_443,
+    "terminal_policy_settlements": 449,
+    "callable_coordinates": 13_725,
+    "paid_no_replay_coordinates": 68,
 }
 _AUDITED_DERIVED_TOTALS = {
-    "scientifically_settled_coordinates": 64_297,
-    "unresolved_coordinates": 10_933,
+    "scientifically_settled_coordinates": 63_892,
+    "unresolved_coordinates": 13_793,
 }
 _AUDITED_VARIANTS = {
-    "zero_shot": (26, 13_067, 1_964, 15),
-    "one_shot_a": (26, 13_060, 1_970, 16),
-    "one_shot_b": (26, 13_044, 1_982, 20),
-    "two_shot": (26, 13_047, 1_983, 16),
-    "learning_from_experience": (24, 12_079, 2_961, 6),
+    "zero_shot": (26, 12_977, 2_547, 13),
+    "one_shot_a": (26, 12_960, 2_562, 15),
+    "one_shot_b": (26, 12_938, 2_581, 18),
+    "two_shot": (26, 12_938, 2_583, 16),
+    "learning_from_experience": (24, 12_079, 3_452, 6),
 }
 _AUDITED_REMAINING_ROUTES = {
-    "public_openrouter_runner": {
+    "helix_local_full_rerun": {
         "moonshotai/Kimi-K2-Thinking",
         "moonshotai/Kimi-K2.5",
         "moonshotai/Kimi-K2.6",
+        "Qwen/Qwen3.8-27B",
+    },
+    "helix_capacity_blocked": {
         "moonshotai/Kimi-K3",
-        "qwen/qwen3.8-max",
     },
     "local_cluster_routes": {
         "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16",
         "nvidia/Llama-3_3-Nemotron-Super-49B-v1_5",
+        "Qwen/Qwen3.8-Flash-Next",
     },
 }
 _STATUS_COUNTS = {
     "strict_complete": 23,
     "terminal_complete": 1,
-    "incomplete": 8,
+    "incomplete": 9,
 }
 _PARTITION_FIELDS = (
     "real_responses",
@@ -136,7 +139,7 @@ def _load_registry() -> list[dict[str, Any]]:
             raise ValueError(
                 f"configs/models.yaml census for {variant!r} must be {expected}, found {found}"
             )
-        if sum(found[1:]) != 15_046:
+        if sum(found[1:]) != 15_537:
             raise ValueError(f"configs/models.yaml census for {variant!r} does not close")
 
     raw_routes = payload.get("remaining_work_routing")
@@ -156,9 +159,9 @@ def _load_registry() -> list[dict[str, Any]]:
         routed_models.update(raw_model_ids)
 
     raw_rows = payload.get("models")
-    if not isinstance(raw_rows, list) or len(raw_rows) != 32:
+    if not isinstance(raw_rows, list) or len(raw_rows) != 33:
         found = len(raw_rows) if isinstance(raw_rows, list) else type(raw_rows).__name__
-        raise ValueError(f"configs/models.yaml must contain exactly 32 models; found {found}")
+        raise ValueError(f"configs/models.yaml must contain exactly 33 models; found {found}")
 
     registry: list[dict[str, Any]] = []
     for index, raw_row in enumerate(raw_rows, start=1):
@@ -227,9 +230,9 @@ def _load_registry() -> list[dict[str, Any]]:
         modality: sum(row["model_modality"] == modality for row in registry)
         for modality in ("multimodal", "text_only")
     }
-    if modality_counts != {"multimodal": 23, "text_only": 9}:
+    if modality_counts != {"multimodal": 24, "text_only": 9}:
         raise ValueError(
-            "configs/models.yaml modality census must be 23 multimodal and 9 text-only; "
+            "configs/models.yaml modality census must be 24 multimodal and 9 text-only; "
             f"found {modality_counts}"
         )
     status_counts = {
@@ -501,7 +504,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--missing-policy",
         choices=["none"],
         default="none",
-        help="require a complete 32-model judged matrix; synthetic scores are forbidden",
+        help="require a complete 33-model judged matrix; synthetic scores are forbidden",
     )
     return parser
 

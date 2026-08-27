@@ -1,39 +1,39 @@
 # Audited generation snapshot and authoritative publication order.
 audited_generation_snapshot:
-  date: 2026-08-25
-  expected_coordinates: 75230
-  real_nonblank_responses: 63764
-  terminal_policy_settlements: 533
-  scientifically_settled_coordinates: 64297
-  callable_coordinates: 10860
-  paid_no_replay_coordinates: 73
-  unresolved_coordinates: 10933
+  date: 2026-08-27
+  expected_coordinates: 77685
+  real_nonblank_responses: 63443
+  terminal_policy_settlements: 449
+  scientifically_settled_coordinates: 63892
+  callable_coordinates: 13725
+  paid_no_replay_coordinates: 68
+  unresolved_coordinates: 13793
 
 concrete_variant_census:
   zero_shot:
     complete_models: 26
-    settled: 13067
-    callable: 1964
-    paid_no_replay: 15
+    settled: 12977
+    callable: 2547
+    paid_no_replay: 13
   one_shot_a:
     complete_models: 26
-    settled: 13060
-    callable: 1970
-    paid_no_replay: 16
+    settled: 12960
+    callable: 2562
+    paid_no_replay: 15
   one_shot_b:
     complete_models: 26
-    settled: 13044
-    callable: 1982
-    paid_no_replay: 20
+    settled: 12938
+    callable: 2581
+    paid_no_replay: 18
   two_shot:
     complete_models: 26
-    settled: 13047
-    callable: 1983
+    settled: 12938
+    callable: 2583
     paid_no_replay: 16
   learning_from_experience:
     complete_models: 24
     settled: 12079
-    callable: 2961
+    callable: 3452
     paid_no_replay: 6
 
 # Exact terminal-incorrect distribution for the fixed pre-Nemotron census.
@@ -73,12 +73,6 @@ terminal_variant_authority:
       one_shot_b: 17
       two_shot: 8
       learning_from_experience: 0
-    qwen/qwen3.8-max:
-      zero_shot: 22
-      one_shot_a: 23
-      one_shot_b: 21
-      two_shot: 18
-      learning_from_experience: 0
     MiniMaxAI/MiniMax-M2.5:
       zero_shot: 74
       one_shot_a: 85
@@ -87,15 +81,17 @@ terminal_variant_authority:
       learning_from_experience: 28
 
 remaining_work_routing:
-  public_openrouter_runner:
+  helix_local_full_rerun:
     - moonshotai/Kimi-K2-Thinking
     - moonshotai/Kimi-K2.5
     - moonshotai/Kimi-K2.6
+    - Qwen/Qwen3.8-27B
+  helix_capacity_blocked:
     - moonshotai/Kimi-K3
-    - qwen/qwen3.8-max
   local_cluster_routes:
     - nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16
     - nvidia/Llama-3_3-Nemotron-Super-49B-v1_5
+    - Qwen/Qwen3.8-Flash-Next
 
 # Multimodal models require 2,455 coordinates; text-only models require 2,085.
 # strict_complete means every coordinate has a real nonblank response.
@@ -382,12 +378,35 @@ models:
     terminal_settlements: 0
     callable_coordinates: 0
     paid_no_replay_coordinates: 0
-  - model_id: qwen/qwen3.8-max
-    display_name: Qwen3.8 Max
+  - model_id: Qwen/Qwen3.8-Flash-Next
+    display_name: Qwen3.8 Flash Next
     family: qwen
     modality: multimodal
     generation_status: incomplete
-    real_responses: 321
-    terminal_settlements: 84
-    callable_coordinates: 2045
-    paid_no_replay_coordinates: 5
+    registry_revision: de4b8e4d43b917e7706784d8bb445c9af86a3540
+    release_date: 2026-08-26
+    license: qwen-community-1.0
+    architecture: Qwen4ExpForConditionalGeneration
+    model_type: qwen4_exp
+    reasoning_effort: xhigh
+    real_responses: 0
+    terminal_settlements: 0
+    callable_coordinates: 2455
+    paid_no_replay_coordinates: 0
+  - model_id: Qwen/Qwen3.8-27B
+    display_name: Qwen3.8 27B
+    family: qwen
+    modality: multimodal
+    generation_status: incomplete
+    registry_revision: 1d4bf0f2ff6012fd82039f2fa52739d0dd7c60c0
+    license: apache-2.0
+    architecture: Qwen3_5ForConditionalGeneration
+    model_type: qwen3_5
+    reasoning_effort: xhigh
+    preserve_thinking: true
+    checkpoint_weight_file_count: 18
+    checkpoint_weight_bytes: 55563006776
+    real_responses: 0
+    terminal_settlements: 0
+    callable_coordinates: 2455
+    paid_no_replay_coordinates: 0

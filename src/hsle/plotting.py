@@ -264,8 +264,8 @@ def _load_plot_contract() -> PlotContract:
 def _load_models(contract: PlotContract) -> list[Model]:
     payload = load_yaml("configs/models.yaml")
     rows = payload.get("models")
-    if not isinstance(rows, list) or len(rows) != 32:
-        raise ValueError("configs/models.yaml must contain exactly 32 model rows")
+    if not isinstance(rows, list) or len(rows) != 33:
+        raise ValueError("configs/models.yaml must contain exactly 33 model rows")
     registry: dict[str, Model] = {}
     registry_order: list[str] = []
     for index, raw_row in enumerate(rows):
