@@ -71,7 +71,7 @@ weighted named settings.
 The public dataset is
 [`shashankskagnihotri/humanitys-second-last-exam`](https://huggingface.co/datasets/shashankskagnihotri/humanitys-second-last-exam),
 pinned by default at immutable revision
-`aeda08b2536a19e698d027fd4f701eea78c9171d`.
+`b41487579a0c70a6ca6038b282cdab50ab50c891`.
 
 Its primary `test` split is one **491-row × 174-column consolidated dataset**.
 Every row contains the complete 58-field final target record, complete
@@ -96,7 +96,7 @@ Or pin it explicitly:
 ```bash
 hsle-download-data \
   --repo-id shashankskagnihotri/humanitys-second-last-exam \
-  --revision aeda08b2536a19e698d027fd4f701eea78c9171d
+  --revision b41487579a0c70a6ca6038b282cdab50ab50c891
 ```
 
 The downloader requires the consolidated table to contain exactly 491 rows and

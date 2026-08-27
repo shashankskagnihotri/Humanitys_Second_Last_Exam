@@ -15,7 +15,7 @@ from hsle.config import load_environment, resolve_path
 
 DATA_PATTERNS = ("data/**", "processed/**", "corrections/**", "images/**")
 PUBLIC_DATASET_REPO_ID = "shashankskagnihotri/humanitys-second-last-exam"
-PUBLIC_DATASET_REVISION = "aeda08b2536a19e698d027fd4f701eea78c9171d"
+PUBLIC_DATASET_REVISION = "b41487579a0c70a6ca6038b282cdab50ab50c891"
 CONSOLIDATED_DATASET_SHA256 = (
     "8a0568576ed1788e21899171c4e5a379b814ac09d912a26e3ad8a835a0337b04"
 )

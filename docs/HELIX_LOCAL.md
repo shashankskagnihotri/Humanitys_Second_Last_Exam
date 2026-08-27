@@ -66,7 +66,7 @@ authentication, then validates the model and data before generation. The
 public dataset authority is:
 
 - repository `shashankskagnihotri/humanitys-second-last-exam`;
-- revision `aeda08b2536a19e698d027fd4f701eea78c9171d`;
+- revision `b41487579a0c70a6ca6038b282cdab50ab50c891`;
 - consolidated-table SHA-256
   `8a0568576ed1788e21899171c4e5a379b814ac09d912a26e3ad8a835a0337b04`;
 - 491 targets, 982 context instances, 491 two-example linkage rows, and 258
