@@ -133,9 +133,10 @@ otherwise-missing HLE verdict was closed by Gemini 3.5 Flash with an explicit
 formula-preserving constrained fallback; the exact model answer was not
 changed. Missing metric evidence is conservatively scored zero only in the
 plotted projection. Both Kimi-VL-A3B-Thinking and MiniMax M2.5 remain labeled
-“lower bound” in both metrics because their generation layers contain
-disclosed terminal or no-replay gaps; this does not imply that all of their
-underlying score evidence is missing.
+“lower bound” in both metrics, but for different reasons: Kimi-VL is strictly
+generation-complete and has one unresolved HLE judge outcome, while MiniMax's
+generation layer has 13 paid/no-replay gaps. This does not imply that all of
+their underlying score evidence is missing.
 
 The all-model summaries contain 47,324 logical model-question-setting units
 and use each model's native 491-question multimodal or 417-question text-only
