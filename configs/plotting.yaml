@@ -31,7 +31,7 @@ release:
     - MiniMaxAI/MiniMax-M2.5
   expected_coordinate_count: 59155
   expected_generation_observed_count: 59142
-  expected_hle_observed_count: 59140
+  expected_hle_observed_count: 59141
   expected_closeness_observed_count: 59142
   expected_global_logical_question_units: 47324
   expected_family_coordinate_count: 58415
